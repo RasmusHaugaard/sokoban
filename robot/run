@@ -4,4 +4,4 @@ echo "Copying './src' folder..."
 scp -r src robot@ev3dev.local:~
 
 echo "Starting program 'src/$1' on the ev3..."
-ssh robot@ev3dev.local 'python3 src/'$1
+ssh -t robot@ev3dev.local 'python3 src/'$1
