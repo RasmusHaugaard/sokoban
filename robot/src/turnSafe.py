@@ -1,6 +1,3 @@
-from time import time
-from linefollowing import Linefollowing
-
 INACTIVE = 'INACTIVE'
 START = 'START'
 TURN1 = 'TURN1'
@@ -43,12 +40,12 @@ class Turn:
             state[m2n] = 100
             state[m1n] = -100
             print(abs(gy.angle - self.gyroStart))
-            if (abs(gy.angle - self.gyroStart) > gyroTresh):
+            if abs(gy.angle - self.gyroStart) > gyroTresh:
                 self.state = TURN2
         elif self.state is TURN2:
             state[m2n] = 30
             state[m1n] = -30
-            if ((s1.value() < 30) or (s2.value() < 30)):
+            if (s1.value() < 30) or (s2.value() < 30):
                 self.state = INACTIVE
                 self.cb()
 

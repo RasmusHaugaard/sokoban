@@ -5,17 +5,18 @@ INACTIVE = 'INACTIVE'
 START = 'START'
 ACTIVE = 'ACTIVE'
 
+
 class Forward:
     keys = 'f'
 
-    def __init__(self, cb):
+    def __init__(self):
         self.lf = Linefollowing()
         self.state = INACTIVE
-        self.cb = cb
 
-    def start(self):
+    def start(self, key, cb):
         self.state = START
         self.starttime = time()
+        self.cb = cb
 
     def __call__(self, per, state):
         if self.state == START:
@@ -30,8 +31,10 @@ class Forward:
                 self.cb()
         return state
 
+
 if __name__ == '__main__':
     import setup
-    forward = Forward(lambda: print('done'))
-    forward.start()
+
+    forward = Forward()
+    forward.start('f', lambda: print('done'))
     setup.run(forward)
