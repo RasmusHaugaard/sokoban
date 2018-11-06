@@ -3,12 +3,18 @@ START = 'START'
 TURN1 = 'TURN1'
 TURN2 = 'TURN2'
 
+LIGHT_THRESHOLD = 30
+ANGLE_THRESHOLD = 45
+HIGH_SPEED = 100
+LOW_SPEED = 40
+
+
 class Turn:
     keys = ['l', 'r']
-
-    def __init__(self):
-        self.state = INACTIVE
-        self.direction = 'r'
+    state = INACTIVE
+    start_angle = None
+    direction = None
+    cb = None
 
     def start(self, key, cb):
         self.direction = key
@@ -16,48 +22,45 @@ class Turn:
         self.state = START
 
     def __call__(self, per, state):
-        mL, mR = per['mL'], per['mR']
+        if self.state is INACTIVE:
+            return state
+
         sL, sR = per['sL'], per['sR']
-        gy = per['gy']
+        angle = state['angle']
 
         if self.direction is 'l':
-            gyroTresh = 25
             m1n, m2n = 'mL', 'mR'
-            m1, m2 = mL, mR
             s1, s2 = sL, sR
         elif self.direction is 'r':
-            gyroTresh = 50
             m1n, m2n = 'mR', 'mL'
-            m1, m2 = mR, mL
             s1, s2 = sR, sL
         else:
             assert False, "unexpected turn direction: " + str(self.direction)
 
         if self.state is START:
             self.state = TURN1
-            self.gyroStart = gy.angle
+            self.start_angle = angle
         elif self.state is TURN1:
-            state[m2n] = 100
-            state[m1n] = -100
-            print(abs(gy.angle - self.gyroStart))
-            if abs(gy.angle - self.gyroStart) > gyroTresh:
+            state[m2n] = HIGH_SPEED
+            state[m1n] = -HIGH_SPEED
+            if abs(angle - self.start_angle) > ANGLE_THRESHOLD:
                 self.state = TURN2
         elif self.state is TURN2:
-            state[m2n] = 30
-            state[m1n] = -30
-            if (s1.value() < 30) or (s2.value() < 30):
+            state[m2n] = LOW_SPEED
+            state[m1n] = -LOW_SPEED
+            if s1.value() < LIGHT_THRESHOLD or s2.value() < LIGHT_THRESHOLD:
                 self.state = INACTIVE
                 self.cb()
 
         return state
 
 
-if __name__ is '__main__':
+if __name__ == '__main__':
     import setup
     from forward import Forward
     from center import Center
     from path import Path
 
-    path = Path('frfr', stateMachines=[Forward(), Center(), Turn()])
+    path = Path('frfrfrfrrflflflfll', state_machines=[Forward(), Center(), Turn()], repeat=True)
 
     setup.run(path)
