@@ -1,4 +1,3 @@
-from linefollowing import LineFollowing
 from time import time
 
 INACTIVE = 'INACTIVE'
@@ -10,12 +9,12 @@ BACK = 'BACK'
 PUSH_DISTANCE = 480
 BACK_DISTANCE = 300
 
+
 class Push:
     keys = 'p'
-
-    def __init__(self):
-        self.state = INACTIVE
-        self.lf = LineFollowing()
+    state = INACTIVE
+    wait_start = None
+    cb = None
 
     def start(self, key, cb):
         self.state = START
@@ -31,9 +30,9 @@ class Push:
             state = self.lf(per, state)
             if m.position > PUSH_DISTANCE:
                 self.state = WAIT
-                self.waitstart = time()
+                self.wait_start = time()
         elif self.state is WAIT:
-            if time() - self.waitstart > 0.1:
+            if time() - self.wait_start > 0.1:
                 self.state = BACK
                 m.position = 0
         elif self.state is BACK:
@@ -47,9 +46,7 @@ class Push:
 
 if __name__ == '__main__':
     import setup
-    from path import Path
-    from forward import Forward
+    from stateMachines import Path, LineFollowing, Forward
 
-    path = Path('fp', [Forward(), Push()])
-
-    setup.run(path)
+    p = Path('fp', [LineFollowing(), Forward(), Push()])
+    setup.run(p)

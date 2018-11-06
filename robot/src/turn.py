@@ -40,12 +40,12 @@ class Turn:
         if self.state is START:
             self.state = TURN_STAGE_1
             self.start_angle = angle
-        elif self.state is TURN_STAGE_1:
+        if self.state is TURN_STAGE_1:
             state[m2n] = HIGH_SPEED
             state[m1n] = -HIGH_SPEED
             if abs(angle - self.start_angle) > ANGLE_THRESHOLD:
                 self.state = TURN_STAGE_2
-        elif self.state is TURN_STAGE_2:
+        if self.state is TURN_STAGE_2:
             state[m2n] = LOW_SPEED
             state[m1n] = -LOW_SPEED
             if s1.value() < LIGHT_THRESHOLD or s2.value() < LIGHT_THRESHOLD:
@@ -57,11 +57,8 @@ class Turn:
 
 if __name__ == '__main__':
     import setup
-    from forward import Forward
-    from center import Center
-    from path import Path
+    from stateMachines import Path, LineFollowing, Forward, Center
     from testPaths import TestPaths
 
-    path = Path(TestPaths.leftRight, state_machines=[Forward(), Center(), Turn()], repeat=True)
-
-    setup.run(path)
+    p = Path(TestPaths.leftRight, state_machines=[LineFollowing(), Forward(), Center(), Turn()], repeat=True)
+    setup.run(p)
