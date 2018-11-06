@@ -1,70 +1,67 @@
 INACTIVE = 'INACTIVE'
-TURN1 = 'TURN1'
-TURN2 = 'TURN2'
+START = 'START'
+TURN_STAGE_1 = 'TURN1'
+TURN_STAGE_2 = 'TURN2'
 
-TURN1_DISTANCE = 200
+LIGHT_THRESHOLD = 30
+ANGLE_THRESHOLD = 45
+HIGH_SPEED = 100
+LOW_SPEED = 40
+
 
 class Turn:
-    def __init__(self, cb):
-        self.state = INACTIVE
+    keys = ['l', 'r']
+    state = INACTIVE
+    start_angle = None
+    direction = None
+    cb = None
+
+    def start(self, key, cb):
+        self.direction = key
         self.cb = cb
-        self.turnon = False
-        self.direction = 'RIGHT'
+        self.state = START
 
-    def start(self, direction):
-        self.turnon = True
-        self.direction = direction
+    def __call__(self, per, state):
+        if self.state is INACTIVE:
+            return state
 
-    def next(self, per, state):
-        mL, mR = per['mL'], per['mR']
         sL, sR = per['sL'], per['sR']
-        gy = per['gy']
+        angle = state['angle']
 
-        if self.direction == 'LEFT':
+        if self.direction is 'l':
             m1n, m2n = 'mL', 'mR'
-            m1, m2 = mL, mR
             s1, s2 = sL, sR
-        else:
+        elif self.direction is 'r':
             m1n, m2n = 'mR', 'mL'
-            m1, m2 = mR, mL
             s1, s2 = sR, sL
+        else:
+            assert False, "unexpected turn direction: " + str(self.direction)
 
-        if self.state == INACTIVE:
-            if self.turnon:
-                self.turnon = False
-                self.state = TURN1
-                m2.position = 0
-                self.gyroStart = gy.angle
-        elif self.state == TURN1:
-            # ml.position from 0 to 200 -> 100 to -100
-            val = 100 - min(m2.position / TURN1_DISTANCE, 1.0) * 200
-            state[m2n] = 100
-            state[m1n] = val
-            if (abs(gy.angle - self.gyroStart) > 35):
-                self.state = TURN2
-        elif self.state == TURN2:
-            state[m2n] = 100
-            state[m1n] = -100
-            if (sR.value() < 30):
+        if self.state is START:
+            self.state = TURN_STAGE_1
+            self.start_angle = angle
+        elif self.state is TURN_STAGE_1:
+            state[m2n] = HIGH_SPEED
+            state[m1n] = -HIGH_SPEED
+            if abs(angle - self.start_angle) > ANGLE_THRESHOLD:
+                self.state = TURN_STAGE_2
+        elif self.state is TURN_STAGE_2:
+            state[m2n] = LOW_SPEED
+            state[m1n] = -LOW_SPEED
+            if s1.value() < LIGHT_THRESHOLD or s2.value() < LIGHT_THRESHOLD:
                 self.state = INACTIVE
                 self.cb()
 
         return state
 
 
-if (__name__ == '__main__'):
+if __name__ == '__main__':
     import setup
-    from linefollowing import Linefollowing
+    from forward import Forward
+    from center import Center
+    from path import Path
+    from testPaths import TestPaths
 
-    def cb():
-        print('Done')
+    path = Path(TestPaths.leftRight, state_machines=[Forward(), Center(), Turn()], repeat=True)
 
-    lf = Linefollowing()
-    turn = Turn(cb)
-
-    def program(per, state):
-        state = lf(per, state)
-        state = turn(per, state)
-        return state
-
-    setup.run(program)
+    setup.run(path)

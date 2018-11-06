@@ -1,19 +1,21 @@
-from linefollowing import Linefollowing
+from linefollowing import LineFollowing
 from time import time
 
-CENTERING_DISTANCE = 225
+CENTERING_DISTANCE = 100
+PAUSE = 0
 
 INACTIVE = 'INACTIVE'
 START = 'START'
 CENTERING = 'CENTERING'
 WAIT = 'WAIT'
 
+
 class Center:
     keys = 'c'
-
-    def __init__(self):
-        self.state = INACTIVE
-        self.lf = Linefollowing()
+    state = INACTIVE
+    cb = None
+    wait_start = None
+    lf = LineFollowing()
 
     def start(self, key, cb):
         self.state = START
@@ -27,13 +29,13 @@ class Center:
             self.state = CENTERING
         elif self.state == CENTERING:
             state = self.lf(per, state)
-            if (m.position > CENTERING_DISTANCE):
+            if m.position > CENTERING_DISTANCE:
                 self.state = WAIT
-                self.waitstart = time()
+                self.wait_start = time()
         elif self.state == WAIT:
             state['mL'] = 0
             state['mR'] = 0
-            if time() - self.waitstart > 0.1:
+            if time() - self.wait_start > PAUSE:
                 self.state = INACTIVE
                 self.cb()
 

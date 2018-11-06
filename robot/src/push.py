@@ -1,4 +1,4 @@
-from linefollowing import Linefollowing
+from linefollowing import LineFollowing
 from time import time
 
 INACTIVE = 'INACTIVE'
@@ -8,14 +8,14 @@ WAIT = 'WAIT'
 BACK = 'BACK'
 
 PUSH_DISTANCE = 480
-BACK_DISTANCE = 200
+BACK_DISTANCE = 300
 
 class Push:
     keys = 'p'
 
     def __init__(self):
         self.state = INACTIVE
-        self.lf = Linefollowing()
+        self.lf = LineFollowing()
 
     def start(self, key, cb):
         self.state = START

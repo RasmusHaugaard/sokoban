@@ -2,51 +2,49 @@ STRAIGHT = 'STRAIGHT'
 LEFT = 'LEFT'
 RIGHT = 'RIGHT'
 
-THRESHOLD = 30
-
+THRESHOLD = 50
 BASE_SPEED = 100
-TURN_SPEED = BASE_SPEED * 0.8
+TURN_SPEED = BASE_SPEED * 0.7
 
-class Linefollowing:
+
+class LineFollowing:
     def __init__(self):
         self.drive = STRAIGHT
         self.both = False
 
     def __call__(self, per, state):
-        mL, mR = per['mL'], per['mR']
         sL, sR = per['sL'], per['sR']
 
-        baseSpeed = BASE_SPEED
-        turnSpeed = TURN_SPEED
-
-        onLineLeft = sL.value() < THRESHOLD
-        onLineRight = sR.value() < THRESHOLD
+        on_line_left = sL.value() < THRESHOLD
+        on_line_right = sR.value() < THRESHOLD
 
         self.both = False
-        if onLineLeft and onLineRight:
+        if on_line_left and on_line_right:
             self.drive = STRAIGHT
             self.both = True
-        elif onLineLeft:
+        elif on_line_left:
             self.drive = LEFT
-        elif onLineRight:
+        elif on_line_right:
             self.drive = RIGHT
         else:
-            None
+            pass
 
         if self.drive == STRAIGHT:
-            state['mL'] = baseSpeed
-            state['mR'] = baseSpeed
+            state['mL'] = BASE_SPEED
+            state['mR'] = BASE_SPEED
         elif self.drive == RIGHT:
-            state['mL'] = baseSpeed
-            state['mR'] = turnSpeed
+            state['mL'] = BASE_SPEED
+            state['mR'] = TURN_SPEED
         elif self.drive == LEFT:
-            state['mL'] = turnSpeed
-            state['mR'] = baseSpeed
+            state['mL'] = TURN_SPEED
+            state['mR'] = BASE_SPEED
 
         state['onBothLines'] = self.both
         return state
 
-if __name__ is '__main__':
+
+if __name__ == '__main__':
     import setup
-    linefollowing = Linefollowing()
-    setup.run(linefollowing)
+
+    lf = LineFollowing()
+    setup.run(lf)

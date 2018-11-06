@@ -4,29 +4,30 @@ from ev3dev.ev3 import GyroSensor
 
 from signal import signal, SIGINT
 from time import time
+from gyro import Gyro
+
 
 def run(fun):
     # Connect two motors and two (different) light sensors
     mL = LargeMotor('outC')
     mR = LargeMotor('outB')
 
-    sL = ColorSensor('in3')
-    sR = ColorSensor('in2')
-    gy = GyroSensor('in1')
+    sL = ColorSensor('in1')
+    sR = ColorSensor('in4')
+    gy = GyroSensor('in3')
 
     # Check if the sensors are connected
     assert sL.connected, "Left ColorSensor is not connected"
     assert sR.connected, "Right ColorSensor is not conected"
     assert gy.connected, "Gyro is not connected"
 
-    # Set gyro mode
-    gy.mode = 'GYRO-ANG'
+    gyro = Gyro()
 
     # Set the motor mode
     mL.run_direct()
     mR.run_direct()
-    mL.polarity = "inversed"
-    mR.polarity = "inversed"
+    mL.polarity = "normal"  # "inversed"
+    mR.polarity = "normal"  # "inversed"
 
     # The example doesn't end on its own.
     # Use CTRL-C to exit it (needs command line).
@@ -43,33 +44,37 @@ def run(fun):
     print('Press Ctrl+C to exit')
 
     # Endless loop reading sensors and controlling motors.
-    lastTime = time()
-    lastLog = time()
+    last_time = time()
+    last_log = time()
     dts = 0
 
     while True:
         now = time()
-        deltaTime = now - lastTime;
-        lastTime = now;
+        delta_time = now - last_time
+        last_time = now
 
-        state = fun({
+        per = {
             'now': now,
-            'deltaTime': deltaTime,
+            'deltaTime': delta_time,
             'mL': mL,
             'mR': mR,
             'sL': sL,
             'sR': sR,
             'gy': gy
-        }, {})
+        }
+
+        state = gyro(per, {})
+        state = fun(per, state)
 
         mL.duty_cycle_sp = state.get('mL', 0)
         mR.duty_cycle_sp = state.get('mR', 0)
 
         dts += 1
-        if now - lastLog > 5.0:
-            lastLog = now
+        if now - last_log > 5.0:
+            last_log = now
             print("fps: ", dts / 5.0)
             dts = 0
 
-if __name__ is '__main__':
+
+if __name__ == '__main__':
     print('Some logic here for testing')

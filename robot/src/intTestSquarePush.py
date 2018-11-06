@@ -1,9 +1,5 @@
 import setup
-from path import Path
-from forward import Forward
-from center import Center
-from turnSafe import Turn
-from push import Push
+from stateMachines import *
 
 # infinite square push sequence
 path = Path('fplfrfr', [Forward(), Center(), Turn(), Push()], repeat=True)
