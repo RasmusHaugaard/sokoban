@@ -9,6 +9,10 @@ CENTERING = 'CENTERING'
 WAIT = 'WAIT'
 
 
+def get_pos(per):
+    return (per['mL'].position + per['mR'].position) / 2
+
+
 class Center:
     keys = 'c'
     state = INACTIVE
@@ -20,13 +24,11 @@ class Center:
         self.cb = cb
 
     def __call__(self, per, state):
-        m = per['mL']
-
         if self.state == START:
-            m.position = 0
+            self.start_pos = get_pos(per)
             self.state = CENTERING
         elif self.state == CENTERING:
-            if m.position > CENTERING_DISTANCE:
+            if get_pos(per) - self.start_pos > CENTERING_DISTANCE:
                 self.state = WAIT
                 self.wait_start = time()
         elif self.state == WAIT:

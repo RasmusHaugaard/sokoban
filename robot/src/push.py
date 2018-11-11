@@ -8,6 +8,11 @@ BACK = 'BACK'
 
 PUSH_DISTANCE = 480
 BACK_DISTANCE = 300
+POST_PUSH_WAIT = 0.1
+
+
+def get_pos(per):
+    return (per['mL'].position + per['mR'].position) / 2
 
 
 class Push:
@@ -21,23 +26,20 @@ class Push:
         self.cb = cb
 
     def __call__(self, per, state):
-        m = per['mL']
-
         if self.state is START:
-            m.position = 0
+            self.start_pos = get_pos(per)
             self.state = FORWARD
         elif self.state is FORWARD:
-            state = self.lf(per, state)
-            if m.position > PUSH_DISTANCE:
+            if get_pos(per) - self.start_pos > PUSH_DISTANCE:
                 self.state = WAIT
                 self.wait_start = time()
         elif self.state is WAIT:
-            if time() - self.wait_start > 0.1:
+            if time() - self.wait_start > POST_PUSH_WAIT:
                 self.state = BACK
-                m.position = 0
+                self.start_pos = get_pos(per)
         elif self.state is BACK:
             state['mL'] = state['mR'] = -100
-            if abs(m.position) > BACK_DISTANCE:
+            if abs(get_pos(per) - self.start_pos) > BACK_DISTANCE:
                 self.state = INACTIVE
                 self.cb()
 
