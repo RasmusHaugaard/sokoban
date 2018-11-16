@@ -1,5 +1,13 @@
-from Solver import StateNode
+from StateNode import StateNode
 import numpy as np
+
+AGENT = b'M'
+DIAMOND = b'J'
+GOAL = b'G'
+DIAMOND_ON_GOAL = b'#'
+AGENT_ON_GOAL = b'W'
+FLOOR = b'.'
+WALL = b'X'
 
 
 def load_map(path):
@@ -10,9 +18,6 @@ def load_map(path):
     width = int(map_info[0] + map_info[1])
     height = int(map_info[3] + map_info[4])
     number_diamonds = int(map_info[6] + map_info[7])
-
-    r_pos_x_start = 0
-    r_pos_y_start = 0
 
     print("Width: " + str(width))
     print("Height: " + str(height))
@@ -34,22 +39,22 @@ def load_map(path):
 
     diamonds = []
     agent = ()
+
     for i in range(height):
         for j in range(width):
             v = map_raw[i][j]
-            if v == b'M':
+            if v == AGENT:
                 agent = (j, i)
-                v = b' '
-            elif v == b'J':
+                v = FLOOR
+            elif v == DIAMOND:
                 diamonds.append((j, i))
-                v = b' '
-            elif v == b'#':
+                v = FLOOR
+            elif v == DIAMOND_ON_GOAL:
                 diamonds.append((j, i))
-                v = b'G'
-            elif v == b'W':  # agent on a goal
+                v = GOAL
+            elif v == AGENT_ON_GOAL:
                 agent = (j, i)
-                v = b'G'
-
+                v = GOAL
             _map[j, i] = v
 
     assert agent is not ()
