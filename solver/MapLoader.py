@@ -11,6 +11,10 @@ WALL = b'X'
 
 
 def load_map(path):
+    """
+    reads the map with the initial state from a file and
+    separates the initial state and the map
+    """
     with open(path, 'r') as file:
         map_info = file.readline()
         map_raw = file.readlines()
@@ -25,39 +29,39 @@ def load_map(path):
     print("-------------------------------------------------")
 
     # Extend map to rectangular shape
-    for i in range(height):
-        while len(map_raw[i]) < (width + 1):  # + Null-terminator
-            map_raw[i] = map_raw[i] + "X"
+    for y in range(height):
+        while len(map_raw[y]) < (width + 1):  # + Null-terminator
+            map_raw[y] = map_raw[y] + "X"
 
     # Replace empty spaces with 'X'
-    for i in range(height):
-        map_raw[i] = map_raw[i].replace('\n', 'X')
-        map_raw[i] = map_raw[i].replace(' ', 'X')
+    for y in range(height):
+        map_raw[y] = map_raw[y].replace('\n', 'X')
+        map_raw[y] = map_raw[y].replace(' ', 'X')
 
     # Initialize map
     _map = np.chararray((height, width))  # y,x
 
-    diamonds = []
+    diamonds = ()
     agent = ()
 
-    for i in range(height):
-        for j in range(width):
-            v = map_raw[i][j]
+    for y in range(height):
+        for x in range(width):
+            v = map_raw[y][x]
             if v == AGENT:
-                agent = (j, i)
+                agent = (y, x)
                 v = FLOOR
             elif v == DIAMOND:
-                diamonds.append((j, i))
+                diamonds += (y, x)
                 v = FLOOR
             elif v == DIAMOND_ON_GOAL:
-                diamonds.append((j, i))
+                diamonds += (y, x)
                 v = GOAL
             elif v == AGENT_ON_GOAL:
-                agent = (j, i)
+                agent = (y, x)
                 v = GOAL
-            _map[j, i] = v
+            _map[x, y] = v
 
     assert agent is not ()
     assert len(diamonds) == number_diamonds
 
-    return StateNode(_map, agent, diamonds)
+    return _map, StateNode((*agent, 0), diamonds, 0)

@@ -5,4 +5,4 @@ class UnitCost:
         self.u_turn = u_turn
 
 
-default_unit_cost = UnitCost(1, 1, 2)
+default_unit_cost = UnitCost(1, 0.9, 1.6)
