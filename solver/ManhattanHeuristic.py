@@ -3,7 +3,7 @@ from MapLoader import GOAL
 
 
 class ManhattanHeuristic:
-    def __init__(self, _map, init_state):
+    def __init__(self, _map, unit_cost):
         self.map = _map
         self.goals = np.argwhere(_map == GOAL)
 
