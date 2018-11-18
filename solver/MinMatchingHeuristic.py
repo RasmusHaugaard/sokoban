@@ -19,7 +19,10 @@ class MinMatchingHeuristic:
         for diamond in diamonds:
             dist = []
             for goal in self.goals:
-                dist.append(self.diamond_move_cost[diamond + (ANY,) + goal + (ANY,)])
+                # the move is from the diamond position with any
+                # attack side to the goal with any attack side
+                move = diamond + (ANY,) + goal + (ANY,)
+                dist.append(self.diamond_move_cost[move])
             h += min(dist)
         return h
 
@@ -30,7 +33,7 @@ def main():
 
     for map_path in ['test-map1.txt', 'test-map2.txt']:
         _map, init_state = load_map(map_path)
-        min_matching_heuristic = MinMatchingHeuristic(_map, init_state, default_unit_cost)
+        min_matching_heuristic = MinMatchingHeuristic(_map, default_unit_cost)
         h = min_matching_heuristic(init_state)
         print(map_path, h)
 
