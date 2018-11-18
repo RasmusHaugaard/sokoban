@@ -62,7 +62,7 @@ class SimpleNodeExpander:
                     moves_cache[y, x, orientation] = moves
         return moves_cache
 
-    def expand(self, parent):
+    def __call__(self, parent):
         children = []
         d = parent.diamonds
         for move_cost, pos, direction, push in self.moves_cache[parent.agent]:
@@ -70,9 +70,13 @@ class SimpleNodeExpander:
                 if push and push not in d:
                     i = d.index(pos)
                     d = d[:i] + d[i + 1:] + (push,)
-            cost = parent.current_cost + move_cost
             children.append(
-                StateNode((*pos, direction), d, cost)
+                StateNode(
+                    parent=parent,
+                    agent=pos + (direction,),
+                    diamonds=d,
+                    current_cost=parent.current_cost + move_cost,
+                )
             )
         return children
 
