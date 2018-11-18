@@ -1,31 +1,34 @@
 import numpy as np
+from MapLoader import GOAL
 
 
-class SimpleManhattenHeuristic:
+class ManhattanHeuristic:
     def __init__(self, _map, init_state):
         self.map = _map
+        self.goals = np.argwhere(_map == GOAL)
 
     def __call__(self, state):
-
-        self.diamonds = state     
-        self.manhatten = 0
-        self.buffer = []
-        self.goals =  np.transpose(self.map.count(b'G').nonzero())
-
-        print(self.diamonds)
-        print(self.goals)
-
-        if (np.size(self.goals) >= 4):
-            for i in range(np.shape(self.goals)[0]):
-                for j in range(np.shape(self.goals)[1]):
-                    self.buffer.append(abs(self.diamonds[i][0] - self.goals[j, 0]) + abs(self.diamonds[i][1] - self.goals[j, 1]))
-
-                self.manhatten += min(self.buffer)
-                del self.buffer[:]
-
-        elif (np.size(self.goals) == 2):
-            self.manhatten = abs(self.diamonds[0][0] - self.goals[0][0]) + abs(
-                self.diamonds[0][1] - self.goals[0][1])
+        diamonds = state.diamonds
+        manhattan = 0
+        for diamond in diamonds:
+            dist = []
+            for goal in self.goals:
+                dist.append(abs(diamond[0] - goal[0]) + abs(diamond[1] - goal[1]))
+            manhattan += min(dist)
+        return manhattan
 
 
-        return self.manhatten
+def main():
+    from MapLoader import load_map
+
+    for map_path, expected_h in [('test-map1.txt', 5), ('test-map2.txt', 2)]:
+        _map, init_state = load_map(map_path)
+        manhattan_heuristic = ManhattanHeuristic(_map, init_state)
+        h = manhattan_heuristic(init_state)
+        assert h == expected_h, 'got {}, expected {}'.format(h, expected_h)
+
+    print('Tests succeeded')
+
+
+if __name__ == '__main__':
+    main()
