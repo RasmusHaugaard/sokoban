@@ -197,8 +197,12 @@ def test():
         [b'X', b'X', b'X']
     ])
 
+    # agent weight matrix
     cost, _next = init_agent_weight_matrix(_map, uc)
     assert cost[(2, 1, UP) + (2, 1, UP)] == 0
+    assert cost[(2, 1, UP) + (2, 1, RIGHT)] == uc.turn
+    assert cost[(2, 1, UP) + (2, 1, LEFT)] == uc.turn
+    assert cost[(2, 1, UP) + (2, 1, DOWN)] == uc.u_turn
     assert cost[(2, 1, UP) + (1, 1, UP)] == uc.forward
 
     floyd_warshall_inplace(cost, _next)
@@ -214,6 +218,13 @@ def test():
 
     _cost = expand_with_any_dir(cost)
     assert _cost[(2, 0, ANY) + (1, 1, ANY)] == uc.forward + uc.turn + uc.forward
+
+    # diamond weight matrix
+    cost, _next = init_diamond_weight_matrix(_map, uc)
+    floyd_warshall_inplace(cost, _next)
+    _cost = expand_with_any_dir(cost)
+    assert _cost[(2, 1, ANY) + (1, 1, ANY)] == uc.forward
+    assert _cost[(1, 1, ANY) + (2, 1, ANY)] == inf
 
     print('Tests succeeded')
 
