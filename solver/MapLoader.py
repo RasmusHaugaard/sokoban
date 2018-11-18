@@ -15,53 +15,54 @@ def load_map(path):
     reads the map with the initial state from a file and
     separates the initial state and the map
     """
-    with open(path, 'r') as file:
-        map_info = file.readline()
-        map_raw = file.readlines()
-
-    width = int(map_info[0] + map_info[1])
-    height = int(map_info[3] + map_info[4])
-    number_diamonds = int(map_info[6] + map_info[7])
-
-    print("Width: " + str(width))
-    print("Height: " + str(height))
-    print("Number of diamonds: " + str(number_diamonds))
-    print("-------------------------------------------------")
+    with open(path, 'r') as f:
+        w, h, number_diamonds = [int(v) for v in f.readline().split()]
+        map_raw = [f.readline() for _ in range(h)]
 
     # Extend map to rectangular shape
-    for y in range(height):
-        while len(map_raw[y]) < (width + 1):  # + Null-terminator
-            map_raw[y] = map_raw[y] + "X"
-
-    # Replace empty spaces with 'X'
-    for y in range(height):
-        map_raw[y] = map_raw[y].replace('\n', 'X')
-        map_raw[y] = map_raw[y].replace(' ', 'X')
+    for y in range(h):
+        map_raw[y] = (map_raw[y] + 'X' * w)[:w]
 
     # Initialize map
-    _map = np.chararray((height, width))  # y,x
+    _map = np.chararray((h, w))
+    for y in range(h):
+        for x in range(w):
+            _map[y, x] = map_raw[y][x]
 
-    diamonds = ()
+    diamonds = []
     agent = ()
 
-    for y in range(height):
-        for x in range(width):
-            v = map_raw[y][x]
-            if v == AGENT:
+    for y in range(h):
+        for x in range(w):
+            v = _map[y, x]
+            new_v = WALL
+            if v == GOAL or v == FLOOR:
+                new_v = v
+            elif v == AGENT:
                 agent = (y, x)
-                v = FLOOR
+                new_v = FLOOR
             elif v == DIAMOND:
-                diamonds += (y, x)
-                v = FLOOR
+                diamonds.append((y, x))
+                new_v = FLOOR
             elif v == DIAMOND_ON_GOAL:
-                diamonds += (y, x)
-                v = GOAL
+                diamonds.append((y, x))
+                new_v = GOAL
             elif v == AGENT_ON_GOAL:
                 agent = (y, x)
-                v = GOAL
-            _map[x, y] = v
+                new_v = GOAL
+            _map[y, x] = new_v
 
     assert agent is not ()
-    assert len(diamonds) == number_diamonds
+    assert len(diamonds) == number_diamonds, diamonds
 
-    return _map, StateNode((*agent, 0), diamonds, 0)
+    return _map, StateNode(None, agent + (0,), diamonds, 0)
+
+
+def main():
+    print(*load_map('test-map1.txt'))
+    print('')
+    print(*load_map('test-map2.txt'))
+
+
+if __name__ == '__main__':
+    main()
