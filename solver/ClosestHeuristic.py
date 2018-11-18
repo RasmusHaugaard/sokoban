@@ -5,7 +5,7 @@ import CostCache
 ANY = CostCache.ANY
 
 
-class MinMatchingHeuristic:
+class ClosestHeuristic:
     def __init__(self, _map, unit_cost):
         self.map = _map
         self.goals = [tuple(goal) for goal in np.argwhere(_map == GOAL)]
@@ -33,8 +33,8 @@ def main():
 
     for map_path in ['test-map1.txt', 'test-map2.txt']:
         _map, init_state = load_map(map_path)
-        min_matching_heuristic = MinMatchingHeuristic(_map, default_unit_cost)
-        h = min_matching_heuristic(init_state)
+        heuristic = ClosestHeuristic(_map, default_unit_cost)
+        h = heuristic(init_state)
         print(map_path, h)
 
 

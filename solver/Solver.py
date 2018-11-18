@@ -56,7 +56,7 @@ def solve(_map, initial_state, NodeExpander, Heuristic, unit_cost):
 def main():
     import sys
     from AgentStateNodeExpander import AgentStateNodeExpander as NodeExpander
-    from MinMatchingHeuristic import MinMatchingHeuristic as Heuristic
+    from ClosestHeuristic import ClosestHeuristic as Heuristic
     from UnitCost import default_unit_cost
 
     if len(sys.argv) < 2:
