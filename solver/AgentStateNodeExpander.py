@@ -5,7 +5,7 @@ from StateNode import StateNode
 UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3
 
 
-class SimpleNodeExpander:
+class AgentStateNodeExpander:
 
     def __init__(self, _map, unit_cost):
         self.moves_cache = self.build_moves_cache(_map, unit_cost)
@@ -92,7 +92,7 @@ def test():
         [b'X', b'X', b'X']
     ])
 
-    c = SimpleNodeExpander.build_moves_cache(_map, default_unit_cost)
+    c = AgentStateNodeExpander.build_moves_cache(_map, default_unit_cost)
 
     assert len(c[0, 0, UP]) == 0
     assert len(c[0, 0, LEFT]) == 0
