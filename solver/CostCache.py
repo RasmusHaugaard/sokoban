@@ -7,18 +7,36 @@ The 'any' direction might be used to give an underestimated cost
 of moving a diamond from any position to any other
 """
 
-
 import numpy as np
 from MapLoader import WALL
 import math
 
 UP, RIGHT, DOWN, LEFT, ANY = 0, 1, 2, 3, 4
+opposite_dir = [DOWN, LEFT, UP, RIGHT, ANY]
 inf = float('inf')
 
 
-def init_weight_matrix(_map, unit_costs):
+def move(y, x, d):
+    if d == UP:
+        return y - 1, x
+    elif d == RIGHT:
+        return y, x + 1
+    elif d == DOWN:
+        return y + 1, x
+    return y, x - 1
+
+
+def is_available(_map, y, x):
+    """checks for out of bounds or walls"""
+    h, w = _map.shape[:2]
+    if y < 0 or h <= y or x < 0 or w <= x:
+        return False
+    return _map[y, x] != WALL
+
+
+def init_agent_weight_matrix(_map, unit_costs):
     """
-    Initializes a weight and _next matrix with unit movements (forward, turn, u turn)
+    Initializes a weight and _next matrix with unit agent moves (forward, turn, u turn)
     based on the map and unit costs
     """
     rot_cost = [0, unit_costs.turn, unit_costs.u_turn, unit_costs.turn]
@@ -38,8 +56,7 @@ def init_weight_matrix(_map, unit_costs):
     # fill in unit costs: forward, turn (l+r) and u turn
     for y in range(h):
         for x in range(w):
-            v = _map[y, x]
-            if v == WALL:
+            if not is_available(_map, y, x):
                 continue
             for start_dir in (UP, RIGHT, DOWN, LEFT):
                 # add rotation costs in this position
@@ -49,21 +66,70 @@ def init_weight_matrix(_map, unit_costs):
                     _next[y, x, start_dir, y, x, end_dir] = (y, x, end_dir)
 
                 # add the cost of moving forward from start dir
-                if start_dir == UP:
-                    yy, xx = y - 1, x
-                elif start_dir == RIGHT:
-                    yy, xx = y, x + 1
-                elif start_dir == DOWN:
-                    yy, xx = y + 1, x
-                else:  # LEFT
-                    yy, xx = y, x - 1
-
                 # check for out of bounds or walls
-                if yy < 0 or h <= yy or xx < 0 or w <= xx:
-                    continue
-                if _map[yy, xx] == WALL:
+                yy, xx = move(y, x, start_dir)
+                if not is_available(_map, yy, xx):
                     continue
 
+                cost[y, x, start_dir, yy, xx, start_dir] = unit_costs.forward
+                _next[y, x, start_dir, yy, xx, start_dir] = (yy, xx, start_dir)
+
+    return cost, _next
+
+
+def init_diamond_weight_matrix(_map, unit_costs):
+    """
+    Assumes a diamond has an attack side: (UP, RIGHT, DOWN or LEFT),
+    in which direction it can be pushed immediately, if there's no wall there.
+    The attack side can be changed, which costs the minimum robot cost to move to that side.
+
+    Initializes a weight and _next matrix with unit diamond moves
+    based on the map and unit costs
+    """
+
+    rot_cost = [
+        0,
+        unit_costs.turn * 3 + unit_costs.forward * 2,
+        unit_costs.turn * 4 + unit_costs.forward * 4,
+        unit_costs.turn * 3 + unit_costs.forward * 2
+    ]
+
+    h, w = _map.shape
+
+    # we want to describe the cost from going from any pos and
+    # orientation (h * w * 4) = n, to any other pos/orientation
+    # n by n matrix to describe the cost
+    cost = np.empty((h, w, 4, h, w, 4), dtype=np.float)
+    _next = np.empty((h, w, 4, h, w, 4), dtype=np.object)
+
+    # start by filling the matrix with infinity (not feasible to go anywhere)
+    cost.fill(inf)
+    _next.fill(None)
+
+    def attack_side_exists(y, x, direction):
+        return is_available(_map, *move(y, x, opposite_dir[direction]))
+
+    # fill in unit costs
+    for y in range(h):
+        for x in range(w):
+            if not is_available(_map, y, x):
+                continue
+            for start_dir in (UP, RIGHT, DOWN, LEFT):
+                if not attack_side_exists(y, x, start_dir):
+                    continue
+
+                # add rotation costs in this position
+                for end_dir in (UP, RIGHT, DOWN, LEFT):
+                    if not attack_side_exists(y, x, end_dir):
+                        continue
+                    c = rot_cost[abs(end_dir - start_dir)]
+                    cost[y, x, start_dir, y, x, end_dir] = c
+                    _next[y, x, start_dir, y, x, end_dir] = (y, x, end_dir)
+
+                # add the cost of moving forward from start dir
+                yy, xx = move(y, x, start_dir)
+                if not is_available(_map, yy, xx):
+                    continue
                 cost[y, x, start_dir, yy, xx, start_dir] = unit_costs.forward
                 _next[y, x, start_dir, yy, xx, start_dir] = (yy, xx, start_dir)
 
@@ -131,7 +197,7 @@ def test():
         [b'X', b'X', b'X']
     ])
 
-    cost, _next = init_weight_matrix(_map, uc)
+    cost, _next = init_agent_weight_matrix(_map, uc)
     assert cost[(2, 1, UP) + (2, 1, UP)] == 0
     assert cost[(2, 1, UP) + (1, 1, UP)] == uc.forward
 
