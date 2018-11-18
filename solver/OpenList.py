@@ -85,7 +85,7 @@ class OpenListHeap:
         for child in children:
             heapq.heappush(self.h, (child.total_cost, child))
 
-    def take_head(self):
+    def extract_min(self):
         return heapq.heappop(self.h)[1]
 
 

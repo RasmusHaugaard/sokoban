@@ -1,152 +1,70 @@
-class StateNode:
-    current_cost = 0
-    total_cost = 0
-
-    def __init__(self, _map, a, d):
-        self.map = _map
-        self.a = a
-        self.d = d
-
-    def hash(self):
-        return str([self.a] + self.d)
+from OpenList import OpenList
+from MapLoader import GOAL, load_map
 
 
+def is_solution(_map, state):
+    for diamond in state.diamonds:
+        if _map[diamond] != GOAL:
+            return False
+    return True
 
 
-def solve(heuristic, _map, init_state):
-    pass
+def solve(_map, initial_state, NodeExpander, Heuristic, unit_cost):
+
+    print('initializing node expander')
+    node_expander = NodeExpander(_map, unit_cost)
+    print('initializing heuristic')
+    heuristic = Heuristic(_map, unit_cost)
+    print('initialization done')
+
+    closed_set = set()
+    initial_state.total_cost = heuristic(initial_state)
+    cached_heuristics = {
+        initial_state: initial_state.total_cost
+    }
+
+    open_list = OpenList()
+    open_list.add_children([initial_state])
+
+    i = 0
+    while open_list.h:
+        parent = open_list.extract_min()
+        if is_solution(_map, parent):
+            return parent
+        closed_set.add(hash(parent))
+
+        children = []
+        for child in node_expander(parent):
+            if hash(child) in closed_set:
+                continue
+            h = cached_heuristics.get(child, None)
+            if h is None:
+                h = heuristic(child)
+                cached_heuristics[child] = h
+            child.total_cost = child.current_cost + h
+            children.append(child)
+
+        open_list.add_children(children)
+
+        i += 1
+        if i % 1000 == 0:
+            print(i // 1000, 'k nodes expanded')
 
 
-def mergeLists(openList, children):
-    openList.extend(children)
+def main():
+    import sys
+    from AgentStateNodeExpander import AgentStateNodeExpander as NodeExpander
+    from ManhattanHeuristic import ManhattanHeuristic as Heuristic
+    from UnitCost import default_unit_cost
 
-    bubblesort(openList)
-
-
-def bubblesort(openList):
-    i = 1
-
-# Swap the elements to arrange in order
-    for iter_num in range(len(openList)-1,0,-1):
-        for idx in range(iter_num):
-            if (openList[idx].manhatten + (i*openList[idx].depth)) > (openList[idx+1].manhatten + (i*openList[idx+1].depth)):
-                temp = openList[idx]
-                openList[idx] = openList[idx+1]
-                openList[idx+1] = temp
+    if len(sys.argv) < 2:
+        print('no map file argument given')
+        return
+    path = sys.argv[1]
+    _map, initial_state = load_map(path)
+    solution = solve(_map, initial_state, NodeExpander, Heuristic, default_unit_cost)
+    print(solution)
 
 
-def expandNode(openList, closedSet):
-    global nodeID
-    head = openList[0]
-    childExists = 0
-    children = []
-
-    if (head.up_test() == 0):
-        children.append(deepcopy(head))
-        children[-1].up()
-
-        # Test if child is already in closedSet
-        for i in range(len(closedSet)):
-            if (np.array_equal(children[-1].map, closedSet[i].map)):
-                childExists = 1
-                break
-
-        # Test if child is already in openList
-        for i in range(len(openList)):
-            if (np.array_equal(children[-1].map, openList[i].map)):
-                childExists = 1
-                break
-
-        if (childExists == 1):
-            del children[-1]
-        else:
-            nodeID += 1
-            children[-1].setNodeID(nodeID)
-            children[-1].setParent(head.nodeID)
-            children[-1].setManhatten()
-
-        childExists = 0
-
-    if (head.down_test() == 0):
-        children.append(deepcopy(head))
-        children[-1].down()
-
-        # Test if child is already in closedSet
-        for i in range(len(closedSet)):
-            if (np.array_equal(children[-1].map, closedSet[i].map)):
-                childExists = 1
-                break
-
-        # Test if child is already in openList
-        for i in range(len(openList)):
-            if (np.array_equal(children[-1].map, openList[i].map)):
-                childExists = 1
-                break
-
-        if (childExists == 1):
-            del children[-1]
-        else:
-            nodeID += 1
-            children[-1].setNodeID(nodeID)
-            children[-1].setParent(head.nodeID)
-            children[-1].setManhatten()
-
-        childExists = 0
-
-    if (head.right_test() == 0):
-        children.append(deepcopy(head))
-        children[-1].right()
-
-        # Test if child is already in closedSet
-        for i in range(len(closedSet)):
-            if (np.array_equal(children[-1].map, closedSet[i].map)):
-                childExists = 1
-                break
-
-        # Test if child is already in openList
-        for i in range(len(openList)):
-            if (np.array_equal(children[-1].map, openList[i].map)):
-                childExists = 1
-                break
-
-        if (childExists == 1):
-            del children[-1]
-        else:
-            nodeID += 1
-            children[-1].setNodeID(nodeID)
-            children[-1].setParent(head.nodeID)
-            children[-1].setManhatten()
-
-        childExists = 0
-
-    if (head.left_test() == 0):
-        children.append(deepcopy(head))
-        children[-1].left()
-
-        # Test if child is already in closedSet
-        for i in range(len(closedSet)):
-            if (np.array_equal(children[-1].map, closedSet[i].map)):
-                childExists = 1
-                break
-
-        # Test if child is already in openList
-        for i in range(len(openList)):
-            if (np.array_equal(children[-1].map, openList[i].map)):
-                childExists = 1
-                break
-
-        if (childExists == 1):
-            del children[-1]
-        else:
-            nodeID += 1
-            children[-1].setNodeID(nodeID)
-            children[-1].setParent(head.nodeID)
-            children[-1].setManhatten()
-
-        childExists = 0
-
-    openList.pop(0)
-    closedSet.append(head)
-
-    return children
-
+if __name__ == '__main__':
+    main()
