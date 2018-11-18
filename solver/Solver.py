@@ -1,6 +1,8 @@
 from OpenList import OpenList
 from MapLoader import GOAL, load_map
 
+inf = float('inf')
+
 
 def is_solution(_map, state):
     for diamond in state.diamonds:
@@ -10,10 +12,9 @@ def is_solution(_map, state):
 
 
 def solve(_map, initial_state, NodeExpander, Heuristic, unit_cost):
-
-    print('initializing node expander')
+    print('initializing node expander', NodeExpander)
     node_expander = NodeExpander(_map, unit_cost)
-    print('initializing heuristic')
+    print('initializing heuristic', Heuristic)
     heuristic = Heuristic(_map, unit_cost)
     print('initialization done')
 
@@ -42,7 +43,8 @@ def solve(_map, initial_state, NodeExpander, Heuristic, unit_cost):
                 h = heuristic(child)
                 cached_heuristics[child] = h
             child.total_cost = child.current_cost + h
-            children.append(child)
+            if child.total_cost != inf:
+                children.append(child)
 
         open_list.add_children(children)
 
@@ -54,7 +56,7 @@ def solve(_map, initial_state, NodeExpander, Heuristic, unit_cost):
 def main():
     import sys
     from AgentStateNodeExpander import AgentStateNodeExpander as NodeExpander
-    from ManhattanHeuristic import ManhattanHeuristic as Heuristic
+    from MinMatchingHeuristic import MinMatchingHeuristic as Heuristic
     from UnitCost import default_unit_cost
 
     if len(sys.argv) < 2:
