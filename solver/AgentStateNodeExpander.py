@@ -1,6 +1,7 @@
 import numpy as np
 from MapLoader import WALL
 from StateNode import StateNode
+from CostCache import move
 
 UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3
 
@@ -39,24 +40,11 @@ class AgentStateNodeExpander:
                     moves = []
                     for direction in range(4):
                         cost = move_cost[abs(orientation - direction)]
-                        if direction is UP:
-                            pos = (y - 1, x)
-                            push = (y - 2, x)
-                        elif direction is RIGHT:
-                            pos = (y, x + 1)
-                            push = (y, x + 2)
-                        elif direction is DOWN:
-                            pos = (y + 1, x)
-                            push = (y + 2, x)
-                        elif direction is LEFT:
-                            pos = (y, x - 1)
-                            push = (y, x - 2)
-                        else:
-                            assert False, 'wrong direction type'
+                        pos = move(y, x, direction)
+                        push = move(*pos, direction)
                         if is_walkable(*pos):
                             # the direction will be the orientation after the move
-                            can_push_diamond = is_walkable(*push)
-                            if not can_push_diamond:
+                            if not is_walkable(*push):
                                 push = False
                             moves.append((cost, pos, direction, push))
                     moves_cache[y, x, orientation] = moves
@@ -70,6 +58,8 @@ class AgentStateNodeExpander:
                 if push and push not in d:
                     i = d.index(pos)
                     d = d[:i] + d[i + 1:] + (push,)
+                else:
+                    continue
             children.append(
                 StateNode(
                     parent=parent,

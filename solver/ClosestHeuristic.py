@@ -7,7 +7,6 @@ ANY = CostCache.ANY
 
 class ClosestHeuristic:
     def __init__(self, _map, unit_cost):
-        self.map = _map
         self.goals = [tuple(goal) for goal in np.argwhere(_map == GOAL)]
         cost, _next = CostCache.init_diamond_weight_matrix(_map, unit_cost)
         CostCache.floyd_warshall_inplace(cost, _next)

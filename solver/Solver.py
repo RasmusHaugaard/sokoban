@@ -11,7 +11,7 @@ def is_solution(_map, state):
     return True
 
 
-def solve(_map, initial_state, NodeExpander, Heuristic, unit_cost):
+def solve(_map, initial_states, NodeExpander, Heuristic, unit_cost):
     print('initializing node expander', NodeExpander)
     node_expander = NodeExpander(_map, unit_cost)
     print('initializing heuristic', Heuristic)
@@ -19,13 +19,11 @@ def solve(_map, initial_state, NodeExpander, Heuristic, unit_cost):
     print('initialization done')
 
     closed_set = set()
-    initial_state.total_cost = heuristic(initial_state)
-    cached_heuristics = {
-        initial_state: initial_state.total_cost
-    }
+    for state in initial_states:
+        state.total_cost = heuristic(state)
 
     open_list = OpenList()
-    open_list.add_children([initial_state])
+    open_list.add_children(initial_states)
 
     i = 0
     while open_list.h:
@@ -38,11 +36,7 @@ def solve(_map, initial_state, NodeExpander, Heuristic, unit_cost):
         for child in node_expander(parent):
             if hash(child) in closed_set:
                 continue
-            h = cached_heuristics.get(child, None)
-            if h is None:
-                h = heuristic(child)
-                cached_heuristics[child] = h
-            child.total_cost = child.current_cost + h
+            child.total_cost = child.current_cost + heuristic(child)
             if child.total_cost != inf:
                 children.append(child)
 
@@ -51,6 +45,7 @@ def solve(_map, initial_state, NodeExpander, Heuristic, unit_cost):
         i += 1
         if i % 1000 == 0:
             print(i // 1000, 'k nodes expanded')
+    print('Did not find a solution')
 
 
 def main():
@@ -63,8 +58,8 @@ def main():
         print('no map file argument given')
         return
     path = sys.argv[1]
-    _map, initial_state = load_map(path)
-    solution = solve(_map, initial_state, NodeExpander, Heuristic, default_unit_cost)
+    _map, initial_states = load_map(path)
+    solution = solve(_map, initial_states, NodeExpander, Heuristic, default_unit_cost)
     print(solution)
 
 

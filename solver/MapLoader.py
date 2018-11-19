@@ -55,7 +55,11 @@ def load_map(path):
     assert agent is not ()
     assert len(diamonds) == number_diamonds, diamonds
 
-    return _map, StateNode(None, agent + (0,), diamonds, 0)
+    initial_states = []
+    for orientation in range(4):
+        initial_states.append(StateNode(None, agent + (orientation,), diamonds, 0))
+
+    return _map, initial_states
 
 
 def main():
