@@ -19,8 +19,18 @@ class StateNode:
     def __gt__(self, other):
         return self.total_cost > other.total_cost
 
+    @staticmethod
+    def from_str(text):
+        agent, diamonds = text.split(':')
+        agent = tuple([int(x) for x in agent[1:-1].split(',')])
+        diamonds = diamonds[3:-2].replace('(', '').split('),')
+        diamonds = [diamond.split(',') for diamond in diamonds]
+        diamonds = [(int(diamond[0]), int(diamond[1].replace(')', ''))) for diamond in diamonds]
+        return StateNode(None, agent, diamonds, None)
+
 
 if __name__ == '__main__':
-    node = StateNode(None, (3, 3, 0), ((1, 1), (1, 0), (0, 1), (2, 1)), 0)
+    node = StateNode(None, (3, 3, 0), ((1, 1), (1, 0), (0, 1), (2, 1)), None)
     assert hash(node) == hash((3, 3, 0, (0, 1), (1, 0), (1, 1), (2, 1))), hash(node)
+    assert hash(StateNode.from_str(str(node))) == hash(node)
     print('Test succeeded')
