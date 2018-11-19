@@ -5,18 +5,21 @@ import getch
 import sys
 
 
-def main():
-    if len(sys.argv) < 2:
-        print('no solution file argument given')
-        return
-    path = sys.argv[1]
+def load_solution(path):
     _map, _ = load_map(path)
-
     with open(path, 'r') as f:
         _, h, _ = [int(v) for v in f.readline().split()]
         for _ in range(h):
             f.readline()
         solution = [StateNode.from_str(line) for line in f.readlines() if ':' in line]
+    return _map, solution
+
+
+def main():
+    if len(sys.argv) < 2:
+        print('no solution file argument given')
+        return
+    _map, solution = load_solution(sys.argv[1])
 
     i = 0
     while True:
