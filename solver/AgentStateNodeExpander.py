@@ -54,17 +54,18 @@ class AgentStateNodeExpander:
         children = []
         d = parent.diamonds
         for move_cost, pos, direction, push in self.moves_cache[parent.agent]:
+            new_d = d
             if pos in d:
                 if push and push not in d:
                     i = d.index(pos)
-                    d = d[:i] + d[i + 1:] + (push,)
+                    new_d = d[:i] + d[i + 1:] + (push,)
                 else:
                     continue
             children.append(
                 StateNode(
                     parent=parent,
                     agent=pos + (direction,),
-                    diamonds=d,
+                    diamonds=new_d,
                     current_cost=parent.current_cost + move_cost,
                 )
             )
