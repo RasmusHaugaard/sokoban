@@ -45,7 +45,7 @@ def solve(_map, initial_states, NodeExpander, Heuristic, unit_cost):
         i += 1
         if i % 1000 == 0:
             print(i // 1000, 'k nodes expanded')
-    print('Did not find a solution')
+    return None
 
 
 def main():
@@ -53,14 +53,32 @@ def main():
     from AgentStateNodeExpander import AgentStateNodeExpander as NodeExpander
     from ClosestHeuristic import ClosestHeuristic as Heuristic
     from UnitCost import default_unit_cost
+    from time import time
 
     if len(sys.argv) < 2:
         print('no map file argument given')
         return
-    path = sys.argv[1]
-    _map, initial_states = load_map(path)
-    solution = solve(_map, initial_states, NodeExpander, Heuristic, default_unit_cost)
-    print(solution)
+    map_path = sys.argv[1]
+    _map, initial_states = load_map(map_path)
+    node = solve(_map, initial_states, NodeExpander, Heuristic, default_unit_cost)
+
+    if not node:
+        print('Did not find a solution')
+        return
+
+    solution = [node]
+    while node.parent:
+        node = node.parent
+        solution.append(node)
+    solution.reverse()
+
+    map_file = open(map_path, 'r')
+    solution_path = 'solution/{}:{}.txt'.format(map_path.split('.')[0], int(time()))
+    solution_file = open(solution_path, 'w')
+    solution_file.writelines(map_file.readlines())
+
+    for node in solution:
+        solution_file.write(str(node) + '\n')
 
 
 if __name__ == '__main__':
