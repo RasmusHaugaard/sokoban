@@ -29,6 +29,8 @@ def str_repetition(str):
 
 class Path:
     path = ''
+    previous_step_time = None
+    machine_durations = {}
 
     def __init__(self, path, state_machines, replace={'fr': 'fcr', 'fl': 'fcl'}, repeat=False):
         # path example: "ffrfr2"
@@ -49,9 +51,21 @@ class Path:
         self.next_step()
 
     def next_step(self):
+        if self.previous_step_time:
+            machine = self.state_machine_key_map[self.path[self.i]]
+            now = time()
+            duration = now - self.previous_step_time
+            self.previous_step_time = now
+            durations = self.machine_durations.get(tuple(machine.keys), [])
+            durations.append(duration)
+            self.machine_durations[tuple(machine.keys)] = durations
+        else:
+            self.previous_step_time = time()
         self.i += 1
         if len(self.path) is self.i:
             print("Done with the path in: " + str(time() - self.start_time) + ' seconds.')
+            for key, durations in self.machine_durations.items():
+                print(key, 'average:', sum(durations) / len(durations))
             if self.repeat:
                 self.i = -1
                 self.next_step()
