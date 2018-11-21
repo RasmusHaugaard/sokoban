@@ -1,11 +1,12 @@
 class StateNode:
     total_cost = None
 
-    def __init__(self, parent, agent, diamonds, current_cost):
+    def __init__(self, parent, agent, diamonds, current_cost, pushing=False):
         self.parent = parent
         self.agent = agent
         self.diamonds = tuple(sorted(diamonds))
         self.current_cost = current_cost
+        self.pushing = pushing
 
     def __hash__(self):
         return hash(self.agent + self.diamonds)

@@ -34,4 +34,5 @@ def main():
                 i = min(i + 1, len(solution) - 1)
 
 
-main()
+if __name__ == '__main__':
+    main()

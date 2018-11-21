@@ -53,7 +53,7 @@ def main():
     from AgentStateNodeExpander import AgentStateNodeExpander as NodeExpander
     from ClosestHeuristic import ClosestHeuristic as Heuristic
     from UnitCost import default_unit_cost
-    from time import time
+    import os
 
     if len(sys.argv) < 2:
         print('no map file argument given')
@@ -72,10 +72,18 @@ def main():
         solution.append(node)
     solution.reverse()
 
-    map_file = open(map_path, 'r')
-    solution_path = 'solution/{}:{}.txt'.format(map_path.split('.')[0], int(time()))
+    print('Found a solution in {} steps with cost: {}'.format(len(solution) - 1, solution[-1].current_cost))
+
+    if not os.path.isdir('solutions'):
+        os.mkdir('solutions')
+    solution_path = 'solutions/{}:{}.txt'.format(
+        map_path.split('.')[0],
+        str(default_unit_cost).replace(' ', '')
+    )
     solution_file = open(solution_path, 'w')
-    solution_file.writelines(map_file.readlines())
+
+    with open(map_path, 'r') as map_file:
+        solution_file.writelines(map_file.readlines())
 
     for node in solution:
         solution_file.write(str(node) + '\n')

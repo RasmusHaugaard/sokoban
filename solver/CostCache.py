@@ -86,12 +86,12 @@ def init_diamond_weight_matrix(_map, unit_costs):
     Initializes a weight and _next matrix with unit diamond moves
     based on the map and unit costs
     """
-
+    uc = unit_costs
     rot_cost = [
         0,
-        unit_costs.turn * 3 + unit_costs.forward * 2,
-        unit_costs.turn * 4 + unit_costs.forward * 4,
-        unit_costs.turn * 3 + unit_costs.forward * 2
+        uc.push + uc.turn * 3 + uc.forward * 3,
+        uc.push + uc.turn * 4 + uc.forward * 5,
+        uc.push + uc.turn * 3 + uc.forward * 3
     ]
 
     h, w = _map.shape
@@ -130,7 +130,7 @@ def init_diamond_weight_matrix(_map, unit_costs):
                 yy, xx = move(y, x, start_dir)
                 if not is_available(_map, yy, xx):
                     continue
-                cost[y, x, start_dir, yy, xx, start_dir] = unit_costs.forward
+                cost[y, x, start_dir, yy, xx, start_dir] = uc.forward_diamond
                 _next[y, x, start_dir, yy, xx, start_dir] = (yy, xx, start_dir)
 
     return cost, _next

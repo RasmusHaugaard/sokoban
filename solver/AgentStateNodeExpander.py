@@ -10,17 +10,18 @@ class AgentStateNodeExpander:
 
     def __init__(self, _map, unit_cost):
         self.moves_cache = self.build_moves_cache(_map, unit_cost)
+        self.unit_cost = unit_cost
 
     @staticmethod
     def build_moves_cache(_map, unit_cost):
         """
         cache all possible agent moves from any pos/orientation with their cost
         """
-        move_cost = [
-            unit_cost.forward,
-            unit_cost.forward + unit_cost.turn,
-            unit_cost.forward + unit_cost.u_turn,
-            unit_cost.forward + unit_cost.turn
+        ROT_COST = [
+            0,
+            unit_cost.turn,
+            unit_cost.u_turn,
+            unit_cost.turn
         ]
 
         h, w = _map.shape
@@ -39,34 +40,43 @@ class AgentStateNodeExpander:
                 for orientation in range(4):
                     moves = []
                     for direction in range(4):
-                        cost = move_cost[abs(orientation - direction)]
+                        rot_cost = ROT_COST[abs(orientation - direction)]
                         pos = move(y, x, direction)
                         push = move(*pos, direction)
                         if is_walkable(*pos):
                             # the direction will be the orientation after the move
                             if not is_walkable(*push):
                                 push = False
-                            moves.append((cost, pos, direction, push))
+                            moves.append((rot_cost, pos, direction, push))
                     moves_cache[y, x, orientation] = moves
         return moves_cache
 
     def __call__(self, parent):
         children = []
         d = parent.diamonds
-        for move_cost, pos, direction, push in self.moves_cache[parent.agent]:
+        for rot_cost, pos, direction, push in self.moves_cache[parent.agent]:
             new_d = d
+            pushing = False
+            move_cost = self.unit_cost.forward
             if pos in d:
                 if push and push not in d:
                     i = d.index(pos)
                     new_d = d[:i] + d[i + 1:] + (push,)
+                    pushing = True
                 else:
                     continue
+            if parent.pushing:
+                if parent.agent[2] != direction:
+                    move_cost += self.unit_cost.push
+                elif pushing:
+                    move_cost = self.unit_cost.forward_diamond
             children.append(
                 StateNode(
                     parent=parent,
                     agent=pos + (direction,),
                     diamonds=new_d,
-                    current_cost=parent.current_cost + move_cost,
+                    current_cost=parent.current_cost + rot_cost + move_cost,
+                    pushing=pushing,
                 )
             )
         return children
