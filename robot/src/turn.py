@@ -58,6 +58,7 @@ class Turn:
             state[m2n] = LOW_SPEED
             state[m1n] = -LOW_SPEED
             if state['onAnyLine']:
+                state['resetLineFollowing']()
                 self.state = INACTIVE
                 self.cb()
 

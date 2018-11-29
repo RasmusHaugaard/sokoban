@@ -16,6 +16,11 @@ class LineFollowing:
         self.both = False
         self.debounce_start = 0
 
+    def reset(self):
+        self.drive = STRAIGHT
+        self.both = False
+        self.debounce_start = 0
+
     def __call__(self, per, state):
         sL, sR = per['sL'], per['sR']
 
@@ -49,6 +54,7 @@ class LineFollowing:
             state['mL'] = TURN_SPEED
             state['mR'] = BASE_SPEED
 
+        state['resetLineFollowing'] = self.reset
         return state
 
 
