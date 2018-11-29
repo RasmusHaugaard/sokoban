@@ -1,5 +1,6 @@
 from OpenList import OpenList
 from MapLoader import GOAL, load_map
+from time import time
 
 inf = float('inf')
 
@@ -12,11 +13,17 @@ def is_solution(_map, state):
 
 
 def solve(_map, initial_states, NodeExpander, Heuristic, unit_cost):
+    _start_time = time()
+
     print('initializing node expander', NodeExpander)
     node_expander = NodeExpander(_map, unit_cost)
+    _exp_time = time()
+    print('Node expander initialized in {} seconds'.format(_exp_time - _start_time))
+
     print('initializing heuristic', Heuristic)
     heuristic = Heuristic(_map, unit_cost)
-    print('initialization done')
+    _heu_time = time()
+    print('Heuristic initialized in {} seconds'.format(_heu_time - _exp_time))
 
     closed_set = set()
     for state in initial_states:
@@ -25,33 +32,58 @@ def solve(_map, initial_states, NodeExpander, Heuristic, unit_cost):
     open_list = OpenList()
     open_list.add_children(initial_states)
 
-    i = 0
+    _extracted_nodes_count = 0
+    _extracted_nodes_in_closed_set = 0
+    _child_nodes_count = 0
+    _child_nodes_in_closed_set = 0
+    _min_h = inf
+
     while open_list.h:
         parent = open_list.extract_min()
-        if is_solution(_map, parent):
-            return parent
+        _extracted_nodes_count += 1
+        if hash(parent) in closed_set:
+            _extracted_nodes_in_closed_set += 1
+            continue
         closed_set.add(hash(parent))
+
+        if is_solution(_map, parent):
+            print('Solution found in {} seconds'.format(time() - _heu_time))
+            print('Total time: {} seconds'.format(time() - _start_time))
+            expanded_nodes_count = _extracted_nodes_count - _extracted_nodes_in_closed_set
+            cache_ratio = _extracted_nodes_in_closed_set / _extracted_nodes_count
+            print('Expanded nodes: {}, Cache Ratio: {:.2f}'
+                  .format(expanded_nodes_count, cache_ratio))
+
+            appended_child_nodes_count = _child_nodes_count - _child_nodes_in_closed_set
+            cache_ratio = _child_nodes_in_closed_set / _child_nodes_count
+            print('Appended nodes: {}, Cache Ratio: {:.2f}'
+                  .format(appended_child_nodes_count, cache_ratio))
+            return parent
 
         children = []
         for child in node_expander(parent):
+            _child_nodes_count += 1
             if hash(child) in closed_set:
+                _child_nodes_in_closed_set += 1
                 continue
-            child.total_cost = child.current_cost + heuristic(child)
+            h = heuristic(child)
+            child.total_cost = child.current_cost + h
             if child.total_cost != inf:
                 children.append(child)
+                if h < _min_h:
+                    _min_h = h
 
         open_list.add_children(children)
 
-        i += 1
-        if i % 1000 == 0:
-            print(i // 1000, 'k nodes expanded')
+        if (_extracted_nodes_count - _extracted_nodes_in_closed_set) % 1000 == 0:
+            print((_extracted_nodes_count - _extracted_nodes_in_closed_set) // 1000, 'k nodes expanded, min h:', _min_h)
     return None
 
 
 def main():
     import sys
     from AgentStateNodeExpander import AgentStateNodeExpander as NodeExpander
-    from ClosestHeuristic import ClosestHeuristic as Heuristic
+    from MinMatchingHeuristic import MinMatchingHeuristic as Heuristic
     from UnitCost import default_unit_cost
     import os
 
