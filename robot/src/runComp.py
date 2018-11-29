@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 import setup
-from stateMachines import *
+from stateMachines import Path, get_default_state_machines
 
 sol = "fplfrfffrffffrffprflflffffprrfffrffflfflflfplfrfrffprflflfffprflflfffprflflfplfffrffffrffflffflflfffplfrfrffprflflfffprflflfplfffrfflfffflfflflfplfrfrfffplfrfrffprflflfffprflfflfffpllfrfplfplfrfrfP"
 sol1 = "fplfrfffrffffrffprflflfffprflflfffprflflfplfffrfffrffflfflflfplfrfrffprflflfffprflflfplffffrffflffflflfffplfrfrffprflflffffprrffffrfflffflfflflfplfrfrfffplfrfrffprflflfffprflfflfffpllfrfplfplfrfrfP"
 
-path = Path(sol1, [Forward(), Center(), Turn(), Push()])
+path = Path(sol1, get_default_state_machines())
 setup.run(path)
