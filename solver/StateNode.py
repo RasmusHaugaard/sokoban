@@ -9,7 +9,7 @@ class StateNode:
         self.pushing = pushing
 
     def __hash__(self):
-        return hash(self.agent + self.diamonds)
+        return hash(self.agent + self.diamonds + (self.pushing,))
 
     def __str__(self):
         return str(self.agent) + ": " + str(self.diamonds)
@@ -32,6 +32,6 @@ class StateNode:
 
 if __name__ == '__main__':
     node = StateNode(None, (3, 3, 0), ((1, 1), (1, 0), (0, 1), (2, 1)), None)
-    assert hash(node) == hash((3, 3, 0, (0, 1), (1, 0), (1, 1), (2, 1))), hash(node)
+    assert hash(node) == hash((3, 3, 0, (0, 1), (1, 0), (1, 1), (2, 1), False)), hash(node)
     assert hash(StateNode.from_str(str(node))) == hash(node)
     print('Test succeeded')
