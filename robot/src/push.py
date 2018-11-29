@@ -16,13 +16,14 @@ def get_pos(per):
 
 
 class Push:
-    keys = 'p'
+    keys = ['p', 'P']
     state = INACTIVE
     wait_start = None
     cb = None
 
     def start(self, key, cb):
         self.state = START
+        self.key = key
         self.cb = cb
 
     def __call__(self, per, state):
@@ -31,6 +32,9 @@ class Push:
             self.state = FORWARD
         elif self.state is FORWARD:
             if get_pos(per) - self.start_pos > PUSH_DISTANCE:
+                if self.key == 'P':
+                    self.state = INACTIVE
+                    self.cb()
                 self.state = WAIT
                 self.wait_start = time()
         elif self.state is WAIT:

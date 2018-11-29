@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo "Copying './src' folder..."
+scp -r src robot@ev3dev.local:~
