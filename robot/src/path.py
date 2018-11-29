@@ -33,7 +33,9 @@ class Path:
     previous_step_time = None
     machine_durations = {}
 
-    def __init__(self, path, state_machines, replace={'fr': 'fcr', 'fl': 'fcl'}, repeat=False):
+    def __init__(self, path, state_machines,
+                 replace={'ll': 'u', 'rr': 'u', 'fr': 'fcr', 'fl': 'fcl'},
+                 repeat=False):
         # path example: "ffrfr2"
         self.path = path
         self.state_machines = state_machines
