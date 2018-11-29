@@ -10,6 +10,7 @@ of moving a diamond from any position to any other
 import numpy as np
 from MapLoader import WALL
 import math
+from itertools import chain
 
 UP, RIGHT, DOWN, LEFT, ANY = 0, 1, 2, 3, 4
 opposite_dir = [DOWN, LEFT, UP, RIGHT, ANY]
@@ -36,7 +37,7 @@ def is_available(_map, y, x):
 
 def init_agent_weight_matrix(_map, unit_costs):
     """
-    Initializes a weight and _next matrix with unit agent moves (forward, turn, u turn)
+    Initializes a weight matrix with unit agent moves (forward, turn, u turn)
     based on the map and unit costs
     """
     rot_cost = [0, unit_costs.turn, unit_costs.u_turn, unit_costs.turn]
@@ -47,11 +48,9 @@ def init_agent_weight_matrix(_map, unit_costs):
     # orientation (h * w * 4) = n, to any other pos/orientation
     # n by n matrix to describe the cost
     cost = np.empty((h, w, 4, h, w, 4), dtype=np.float)
-    _next = np.empty((h, w, 4, h, w, 4), dtype=np.object)
 
     # start by filling the matrix with infinity (not feasible to go anywhere)
     cost.fill(inf)
-    _next.fill(None)
 
     # fill in unit costs: forward, turn (l+r) and u turn
     for y in range(h):
@@ -63,7 +62,6 @@ def init_agent_weight_matrix(_map, unit_costs):
                 for end_dir in (UP, RIGHT, DOWN, LEFT):
                     c = rot_cost[abs(end_dir - start_dir)]
                     cost[y, x, start_dir, y, x, end_dir] = c
-                    _next[y, x, start_dir, y, x, end_dir] = (y, x, end_dir)
 
                 # add the cost of moving forward from start dir
                 # check for out of bounds or walls
@@ -72,9 +70,8 @@ def init_agent_weight_matrix(_map, unit_costs):
                     continue
 
                 cost[y, x, start_dir, yy, xx, start_dir] = unit_costs.forward
-                _next[y, x, start_dir, yy, xx, start_dir] = (yy, xx, start_dir)
 
-    return cost, _next
+    return cost
 
 
 def init_diamond_weight_matrix(_map, unit_costs):
@@ -83,15 +80,14 @@ def init_diamond_weight_matrix(_map, unit_costs):
     in which direction it can be pushed immediately, if there's no wall there.
     The attack side can be changed, which costs the minimum robot cost to move to that side.
 
-    Initializes a weight and _next matrix with unit diamond moves
-    based on the map and unit costs
+    Initializes a weight matrix based on the map and unit costs
     """
     uc = unit_costs
     rot_cost = [
         0,
-        uc.push + uc.turn * 3 + uc.forward * 3,
-        uc.push + uc.turn * 4 + uc.forward * 5,
-        uc.push + uc.turn * 3 + uc.forward * 3
+        uc.push + uc.turn + uc.forward - uc.forward_diamond,
+        uc.push + uc.turn + uc.forward - uc.forward_diamond,
+        uc.push + uc.turn + uc.forward - uc.forward_diamond
     ]
 
     h, w = _map.shape
@@ -100,11 +96,9 @@ def init_diamond_weight_matrix(_map, unit_costs):
     # orientation (h * w * 4) = n, to any other pos/orientation
     # n by n matrix to describe the cost
     cost = np.empty((h, w, 4, h, w, 4), dtype=np.float)
-    _next = np.empty((h, w, 4, h, w, 4), dtype=np.object)
 
     # start by filling the matrix with infinity (not feasible to go anywhere)
     cost.fill(inf)
-    _next.fill(None)
 
     def attack_side_exists(y, x, direction):
         return is_available(_map, *move(y, x, opposite_dir[direction]))
@@ -124,26 +118,23 @@ def init_diamond_weight_matrix(_map, unit_costs):
                         continue
                     c = rot_cost[abs(end_dir - start_dir)]
                     cost[y, x, start_dir, y, x, end_dir] = c
-                    _next[y, x, start_dir, y, x, end_dir] = (y, x, end_dir)
 
                 # add the cost of moving forward from start dir
                 yy, xx = move(y, x, start_dir)
                 if not is_available(_map, yy, xx):
                     continue
                 cost[y, x, start_dir, yy, xx, start_dir] = uc.forward_diamond
-                _next[y, x, start_dir, yy, xx, start_dir] = (yy, xx, start_dir)
 
-    return cost, _next
+    return cost
 
 
-def floyd_warshall_inplace(cost, _next):
+def floyd_warshall_inplace(cost):
     """
     Standard floyd warshall implementation
     Updates cost and _next inplace
     """
     n = int(math.sqrt(cost.size))
     cost = cost.reshape((n, n))
-    _next = _next.reshape((n, n))
     # allow use of all vertices, k, as pivots when going
     # from one vertex, i, to another vertex, j
     for k in range(n):
@@ -152,8 +143,32 @@ def floyd_warshall_inplace(cost, _next):
                 if cost[i, j] > cost[i, k] + cost[k, j]:
                     # If it is faster to go from i to j through k, update the cost
                     cost[i, j] = cost[i, k] + cost[k, j]
-                    # and update the i -> j next node to the i -> k next node
-                    _next[i, j] = _next[i, k]
+
+
+def floyd_warshall_inplace_fast(cost):
+    n = int(math.sqrt(cost.size))
+    cost = cost.reshape((n, n))
+    f = inf
+    ii = []
+    jj = []
+    for k in range(n):  # for each row in the cost matrix
+        K = cost[k]
+
+        # only check rows with possible changes
+        ii.clear()
+        jj.clear()
+        for l in chain(range(k), range(k + 1, n)):
+            if cost[l][k] != f:
+                ii += [(l, cost[l][k])]
+            if K[l] != f:
+                jj += [(l, K[l])]
+
+        # actual Floyd Warshall
+        for i, di in ii:
+            I = cost[i]
+            for j, dj in jj:
+                if dj + di < I[j]:
+                    I[j] = dj + di
 
 
 def expand_with_any_dir(cost):
@@ -186,6 +201,22 @@ def get_path(_next, start, end):  # start/end: (x, y, orientation)
     return path
 
 
+def build_diamond_move_cost_cache(_map, unit_cost):
+    cost = init_diamond_weight_matrix(_map, unit_cost)
+    floyd_warshall_inplace_fast(cost)
+    # only return any to any dir
+    cost = expand_with_any_dir(cost)[:, :, 4, :, :, 4]
+    # last interaction with the diamond is not a forward_diamond, but a push
+    cost[cost > 0] += unit_cost.push - unit_cost.forward_diamond
+    return cost
+
+
+def build_agent_move_cost_cache(_map, unit_cost):
+    cost = init_agent_weight_matrix(_map, unit_cost)
+    floyd_warshall_inplace_fast(cost)
+    return expand_with_any_dir(cost)
+
+
 def test():
     from UnitCost import default_unit_cost as uc
 
@@ -198,30 +229,26 @@ def test():
     ])
 
     # agent weight matrix
-    cost, _next = init_agent_weight_matrix(_map, uc)
+    cost = init_agent_weight_matrix(_map, uc)
     assert cost[(2, 1, UP) + (2, 1, UP)] == 0
     assert cost[(2, 1, UP) + (2, 1, RIGHT)] == uc.turn
     assert cost[(2, 1, UP) + (2, 1, LEFT)] == uc.turn
     assert cost[(2, 1, UP) + (2, 1, DOWN)] == uc.u_turn
     assert cost[(2, 1, UP) + (1, 1, UP)] == uc.forward
 
-    floyd_warshall_inplace(cost, _next)
-    c = (2, 0, RIGHT)
-    d = (2, 2, RIGHT)
+    floyd_warshall_inplace(cost)
     assert cost[2, 0, RIGHT, 2, 2, RIGHT] == uc.forward * 2
-    assert get_path(_next, c, d) == [c, (2, 1, RIGHT), d]
 
     e = (2, 0, LEFT)
     f = (1, 1, RIGHT)
     assert cost[e + f] == uc.u_turn + uc.forward + uc.turn + uc.forward + uc.turn
-    assert get_path(_next, e, f) == [e, (2, 0, RIGHT), (2, 1, RIGHT), (2, 1, UP), (1, 1, UP), f]
 
     _cost = expand_with_any_dir(cost)
     assert _cost[(2, 0, ANY) + (1, 1, ANY)] == uc.forward + uc.turn + uc.forward
 
     # diamond weight matrix
-    cost, _next = init_diamond_weight_matrix(_map, uc)
-    floyd_warshall_inplace(cost, _next)
+    cost = init_diamond_weight_matrix(_map, uc)
+    floyd_warshall_inplace(cost)
     _cost = expand_with_any_dir(cost)
     assert _cost[(2, 1, ANY) + (1, 1, ANY)] == uc.forward
     assert _cost[(1, 1, ANY) + (2, 1, ANY)] == inf
