@@ -1,8 +1,8 @@
 from ev3dev.ev3 import ColorSensor
 import time
 
-sL = ColorSensor('in3')
-sR = ColorSensor('in2')
+sL = ColorSensor('in1')
+sR = ColorSensor('in4')
 
 charcount = 40
 mi = 0
