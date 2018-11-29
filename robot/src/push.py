@@ -10,8 +10,9 @@ BACK = 'BACK'
 PUSH_DISTANCE = 480
 BACK_DISTANCE = 300
 
+
 class Push:
-    keys = 'p'
+    keys = ['p', 'P']
 
     def __init__(self):
         self.state = INACTIVE
@@ -19,6 +20,7 @@ class Push:
 
     def start(self, key, cb):
         self.state = START
+        self.key = key
         self.cb = cb
 
     def __call__(self, per, state):
@@ -30,6 +32,9 @@ class Push:
         elif self.state is FORWARD:
             state = self.lf(per, state)
             if m.position > PUSH_DISTANCE:
+                if self.key == 'P':
+                    self.state = INACTIVE
+                    self.cb()
                 self.state = WAIT
                 self.waitstart = time()
         elif self.state is WAIT:
