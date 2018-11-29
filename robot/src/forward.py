@@ -20,6 +20,7 @@ class Forward:
 
     def __call__(self, per, state):
         if self.state == START:
+            state['enable_homing'] = True
             if time.time() - self.start_time > DEBOUNCE_TIME:
                 self.state = ACTIVE
         elif self.state == ACTIVE:

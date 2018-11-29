@@ -8,7 +8,7 @@ BACK = 'BACK'
 
 PUSH_DISTANCE = 380
 BACK_DISTANCE = 250
-POST_PUSH_WAIT = 0.1
+POST_PUSH_WAIT = 0.2
 
 
 def get_pos(per):
@@ -28,10 +28,12 @@ class Push:
 
     def __call__(self, per, state):
         if self.state is START:
+            state['enable_homing'] = True
             self.start_pos = get_pos(per)
             self.state = FORWARD
         elif self.state is FORWARD:
             if get_pos(per) - self.start_pos > PUSH_DISTANCE:
+                state['disable_homing'] = True
                 if self.key == 'P':
                     self.state = INACTIVE
                     self.cb()
