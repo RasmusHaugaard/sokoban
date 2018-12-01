@@ -1,30 +1,20 @@
-import time
-
 INACTIVE = 'INACTIVE'
 START = 'START'
 ACTIVE = 'ACTIVE'
-
-DEBOUNCE_TIME = 0.5
 
 
 class Forward:
     keys = 'f'
     state = INACTIVE
     cb = None
-    start_time = None
 
     def start(self, key, cb):
-        self.state = START
-        self.start_time = time.time()
+        self.state = ACTIVE
         self.cb = cb
 
     def __call__(self, per, state):
-        if self.state == START:
-            state['enable_homing'] = True
-            if time.time() - self.start_time > DEBOUNCE_TIME:
-                self.state = ACTIVE
-        elif self.state == ACTIVE:
-            if state['onBothLines']:
+        if self.state == ACTIVE:
+            if state['rBoth']:
                 self.state = INACTIVE
                 self.cb()
         return state

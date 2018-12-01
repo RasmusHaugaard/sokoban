@@ -1,61 +1,47 @@
-from time import time
-
 STRAIGHT = 'STRAIGHT'
 LEFT = 'LEFT'
 RIGHT = 'RIGHT'
 
 THRESHOLD = 50
-BASE_SPEED = 100
-TURN_SPEED = BASE_SPEED * 0.6
-BOTH_ENTER_DEBOUNCE = 0.08
+BASE_SPEED = 90
+TURN_SPEED = BASE_SPEED * 0.7
+
+DEBOUNCE_DISTANCE = 1
 
 
 class LineFollowing:
     def __init__(self):
         self.drive = STRAIGHT
-        self.both = False
-        self.debounce_start = 0
+        self.start_pos = None
 
-    def reset(self):
-        self.drive = STRAIGHT
-        self.both = False
-        self.debounce_start = 0
+    def __call__(self, per, s):
 
-    def __call__(self, per, state):
-        sL, sR = per['sL'], per['sR']
-
-        on_line_left = sL.value() < THRESHOLD
-        on_line_right = sR.value() < THRESHOLD
-
-        both = on_line_left and on_line_right
-        any = on_line_left or on_line_right
-        state['onBothLines'] = both
-        state['onAnyLine'] = any
-
-        now = time()
-        if now - self.debounce_start > BOTH_ENTER_DEBOUNCE:
-            if both:
-                if not self.both:
-                    self.debounce_start = now
-                    self.both = True
-            else:
-                if on_line_left:
-                    self.drive = LEFT
-                elif on_line_right:
-                    self.drive = RIGHT
+        if s['onBoth']:
+            self.drive = STRAIGHT
+        elif s['fBoth']:
+            self.start_pos = s['pL'], s['pR']
+        elif self.start_pos is not None:
+            pL, pR = s['pL'], s['pR']
+            spL, spR = self.start_pos
+            abs_dist = (abs(pL-spL) + abs(pR-spR)) / 2
+            if abs_dist > DEBOUNCE_DISTANCE:
+                self.start_pos = None
+        elif s['onL']:
+            self.drive = LEFT
+        elif s['onR']:
+            self.drive = RIGHT
 
         if self.drive == STRAIGHT:
-            state['mL'] = BASE_SPEED
-            state['mR'] = BASE_SPEED
+            s['mL'] = BASE_SPEED
+            s['mR'] = BASE_SPEED
         elif self.drive == RIGHT:
-            state['mL'] = BASE_SPEED
-            state['mR'] = TURN_SPEED
+            s['mL'] = BASE_SPEED
+            s['mR'] = TURN_SPEED
         elif self.drive == LEFT:
-            state['mL'] = TURN_SPEED
-            state['mR'] = BASE_SPEED
+            s['mL'] = TURN_SPEED
+            s['mR'] = BASE_SPEED
 
-        state['resetLineFollowing'] = self.reset
-        return state
+        return s
 
 
 if __name__ == '__main__':

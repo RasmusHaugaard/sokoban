@@ -5,6 +5,8 @@ from ev3dev.ev3 import GyroSensor
 from signal import signal, SIGINT
 from time import time
 from gyro import Gyro
+from lightsensors import LightSensors
+from encoder import Encoder
 
 
 def run(fun):
@@ -22,6 +24,8 @@ def run(fun):
     assert gy.connected, "Gyro is not connected"
 
     gyro = Gyro()
+    light_sensors = LightSensors()
+    encoder = Encoder()
 
     # Set the motor mode
     mL.run_direct()
@@ -43,36 +47,51 @@ def run(fun):
     signal(SIGINT, signal_handler)
     print('Press Ctrl+C to exit')
 
+    per = {
+        'mL': mL,
+        'mR': mR,
+        'sL': sL,
+        'sR': sR,
+        'gy': gy
+    }
+
+    light_sensors.init(per)
+    gyro.init(gy)
+
     # Endless loop reading sensors and controlling motors.
-    last_time = time()
     last_log = time()
+    last_now = time()
+    max_dt = 0
     dts = 0
-
+    duty_mL = None
+    duty_mR = None
     while True:
-        now = time()
-        delta_time = now - last_time
-        last_time = now
-
-        per = {
-            'now': now,
-            'deltaTime': delta_time,
-            'mL': mL,
-            'mR': mR,
-            'sL': sL,
-            'sR': sR,
-            'gy': gy
-        }
-
-        state = gyro(per, {})
+        state = {}
+        state = light_sensors(per, state)
+        state = encoder(per, state)
+        state = gyro(per, state)
         state = fun(per, state)
 
-        mL.duty_cycle_sp = state.get('mL', 0)
-        mR.duty_cycle_sp = state.get('mR', 0)
+        _duty_mL = state.get('mL', 0)
+        if _duty_mL != duty_mL:
+            duty_mL = _duty_mL
+            mL.duty_cycle_sp = duty_mL
+        _duty_mR = state.get('mR', 0)
+        if _duty_mR != duty_mR:
+            duty_mR = _duty_mR
+            mR.duty_cycle_sp = duty_mR
 
         dts += 1
+        now = time()
+        dt = now - last_now
+        last_now = now
+
+        if dt > max_dt: max_dt = dt
         if now - last_log > 5.0:
             last_log = now
-            print("fps: ", dts / 5.0)
+            print("avg fps: ", dts / 5.0)
+            print('min fps: ', 1 / max_dt)
+            max_dt = 0
             dts = 0
 
 

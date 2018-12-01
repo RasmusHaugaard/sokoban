@@ -3,17 +3,17 @@ import time
 
 class Gyro:
     angle = 0
-    initialized = False
+    last_time = None
+    start_value = None
+
+    def init(self, gy):
+        gy.mode = 'GYRO-FAS'
+        time.sleep(0.1)
+        self.start_value = gy.value()
+        self.last_time = time.time()
 
     def __call__(self, per, state):
         gy = per['gy']
-
-        if not self.initialized:
-            gy.mode = 'GYRO-FAS'
-            time.sleep(0.1)
-            self.start_value = gy.value()
-            self.last_time = time.time()
-            self.initialized = True
 
         v = gy.value() - self.start_value
         now = time.time()

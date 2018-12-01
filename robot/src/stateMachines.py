@@ -8,4 +8,4 @@ from path import Path
 
 
 def get_default_state_machines():
-    return [LineFollowing(), Forward(), Center(), Turn(), Push(), Homing()]
+    return [LineFollowing(), Forward(), Center(), Turn(), Push()]

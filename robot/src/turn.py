@@ -6,7 +6,7 @@ U_TURN_STAGE_2 = 'TURN2'
 TURN_END_STAGE = 'TURN_END'
 
 ANGLE_THRESHOLD = 40
-ANGLE_THRESHOLD_U_TURN = 40
+ANGLE_THRESHOLD_U_TURN = 20
 HIGH_SPEED = 100
 LOW_SPEED = 40
 
@@ -28,7 +28,6 @@ class Turn:
         if self.state is INACTIVE:
             return state
 
-        state['disable_homing'] = True
         angle = state['angle']
 
         if self.direction is 'l':
@@ -48,7 +47,7 @@ class Turn:
                 else:
                     self.state = TURN_END_STAGE
         if self.state is U_TURN_STAGE_1:
-            if state['onAnyLine']:
+            if state['fL']:  # we are turning right around
                 self.start_angle = angle
                 self.state = U_TURN_STAGE_2
         if self.state is U_TURN_STAGE_2:
@@ -57,8 +56,7 @@ class Turn:
         if self.state is TURN_END_STAGE:
             state[m2n] = LOW_SPEED
             state[m1n] = -LOW_SPEED
-            if state['onAnyLine']:
-                state['resetLineFollowing']()
+            if self.direction is 'l' and state['onL'] or state['onR']:
                 self.state = INACTIVE
                 self.cb()
 

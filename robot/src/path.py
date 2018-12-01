@@ -34,7 +34,7 @@ class Path:
     machine_durations = {}
 
     def __init__(self, path, state_machines,
-                 replace={'ll': 'u', 'rr': 'u', 'fr': 'fcr', 'fl': 'fcl'},
+                 replace={'fr': 'fcr', 'fl': 'fcl'},
                  repeat=False):
         # path example: "ffrfr2"
         self.path = path
@@ -64,6 +64,7 @@ class Path:
             self.machine_durations[tuple(machine.keys)] = durations
         else:
             self.previous_step_time = time()
+        print('Step', self.i, 'done')
         self.i += 1
         if len(self.path) is self.i:
             print("Done with the path in: " + str(time() - self.start_time) + ' seconds.')
@@ -75,10 +76,8 @@ class Path:
                 self.next_step()
         else:
             key = self.path[self.i]
-            assert (
-                key in self.state_machine_key_map,
+            assert key in self.state_machine_key_map, \
                 "'" + str(key) + "' is used in path but not found in stateMachineKeys"
-            )
             self.state_machine_key_map[key].start(key, self.next_step)
             self.running = True
 

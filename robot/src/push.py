@@ -1,4 +1,7 @@
 from time import time
+from center import CENTERING_DISTANCE
+
+OVERSHOOT_PER_SPEED = 0.11
 
 INACTIVE = 'INACTIVE'
 START = 'START'
@@ -6,13 +9,9 @@ FORWARD = 'FORWARD'
 WAIT = 'WAIT'
 BACK = 'BACK'
 
-PUSH_DISTANCE = 380
-BACK_DISTANCE = 250
-POST_PUSH_WAIT = 0.2
-
-
-def get_pos(per):
-    return (per['mL'].position + per['mR'].position) / 2
+PUSH_DISTANCE = 26.6
+#BACK_DISTANCE = 18.2
+POST_PUSH_WAIT = 0.0
 
 
 class Push:
@@ -27,25 +26,36 @@ class Push:
         self.cb = cb
 
     def __call__(self, per, state):
+        pos = state['p']
+        speed = abs(state['speed'])
+
         if self.state is START:
-            state['enable_homing'] = True
-            self.start_pos = get_pos(per)
+            self.start_pos = pos
             self.state = FORWARD
         elif self.state is FORWARD:
-            if get_pos(per) - self.start_pos > PUSH_DISTANCE:
-                state['disable_homing'] = True
+            distance = pos - self.start_pos
+
+            mi, ma, mi_key, ma_key = state['mL'], state['mR'], 'mL', 'mR'
+            if mi > ma:
+                mi, ma, mi_key, ma_key = ma, mi, ma_key, mi_key
+            t = distance / PUSH_DISTANCE
+            target = mi + (ma - mi) * 0.5
+            mi = mi + (target - mi) * t
+            state[mi_key] = mi
+
+            if distance > PUSH_DISTANCE - OVERSHOOT_PER_SPEED * speed:
                 if self.key == 'P':
                     self.state = INACTIVE
                     self.cb()
                 self.state = WAIT
                 self.wait_start = time()
         elif self.state is WAIT:
+            state['mL'] = state['mR'] = 0
             if time() - self.wait_start > POST_PUSH_WAIT:
                 self.state = BACK
-                self.start_pos = get_pos(per)
         elif self.state is BACK:
             state['mL'] = state['mR'] = -100
-            if abs(get_pos(per) - self.start_pos) > BACK_DISTANCE:
+            if abs(pos - self.start_pos) < CENTERING_DISTANCE + OVERSHOOT_PER_SPEED * speed:
                 self.state = INACTIVE
                 self.cb()
 

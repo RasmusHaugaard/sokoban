@@ -1,4 +1,4 @@
 #!/bin/bash
 
 echo "Copying './src' folder..."
-scp -r src/*.py robot@ev3dev.local:~
+scp -r src/*.py robot@ev3dev.local:~/src/
