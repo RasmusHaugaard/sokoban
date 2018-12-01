@@ -58,6 +58,7 @@ class Turn:
             state[m1n] = -LOW_SPEED
             if self.direction is 'l' and state['onL'] or state['onR']:
                 self.state = INACTIVE
+                state['restart_homing'](state['p'])
                 self.cb()
 
         return state
