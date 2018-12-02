@@ -1,42 +1,36 @@
-from linefollowing import LineFollowing
-from time import time
-
 INACTIVE = 'INACTIVE'
 START = 'START'
 ACTIVE = 'ACTIVE'
 
-DEBOUNCE_TIME = 0.5
+DEBOUNCE_DISTANCE = 10
 
 
 class Forward:
     keys = 'f'
     state = INACTIVE
     cb = None
-    start_time = None
-    lf = LineFollowing()
 
     def start(self, key, cb):
         self.state = START
-        self.start_time = time()
         self.cb = cb
 
-    def __call__(self, per, state):
+    def __call__(self, per, s):
         if self.state == START:
-            state = self.lf(per, state)
-            if time() - self.start_time > DEBOUNCE_TIME:
-                print(time())
-                self.state = ACTIVE
-        elif self.state == ACTIVE:
-            state = self.lf(per, state)
-            if state['onBothLines']:
-                self.state = INACTIVE
-                self.cb()
-        return state
+            self.start_pos = s['p']
+            self.state = ACTIVE
+        if self.state == ACTIVE:
+            if s['rBoth']:
+                if s['p'] - self.start_pos > DEBOUNCE_DISTANCE:
+                    self.state = INACTIVE
+                    self.cb()
+                else:
+                    print('NOT READY TO COMPLETE FORWARD YET!')
+        return s
 
 
 if __name__ == '__main__':
     import setup
+    from stateMachines import LineFollowing, Path
 
-    forward = Forward()
-    forward.start('f', lambda: print('done'))
-    setup.run(forward)
+    p = Path('f', [LineFollowing(), Forward()])
+    setup.run(p)

@@ -1,10 +1,9 @@
 INACTIVE = 'INACTIVE'
 START = 'START'
-TURN_STAGE_1 = 'TURN1'
-TURN_STAGE_2 = 'TURN2'
+TURN_STAGE = 'TURN'
+TURN_END_STAGE = 'TURN_END'
 
-LIGHT_THRESHOLD = 30
-ANGLE_THRESHOLD = 45
+ANGLE_THRESHOLD = 40
 HIGH_SPEED = 100
 LOW_SPEED = 40
 
@@ -14,6 +13,7 @@ class Turn:
     state = INACTIVE
     start_angle = None
     direction = None
+    threshold = 0
     cb = None
 
     def start(self, key, cb):
@@ -25,31 +25,31 @@ class Turn:
         if self.state is INACTIVE:
             return state
 
-        sL, sR = per['sL'], per['sR']
         angle = state['angle']
 
         if self.direction is 'l':
             m1n, m2n = 'mL', 'mR'
-            s1, s2 = sL, sR
-        elif self.direction is 'r':
-            m1n, m2n = 'mR', 'mL'
-            s1, s2 = sR, sL
         else:
-            assert False, "unexpected turn direction: " + str(self.direction)
+            m1n, m2n = 'mR', 'mL'
 
+        state[m2n] = HIGH_SPEED
+        state[m1n] = -HIGH_SPEED
         if self.state is START:
-            self.state = TURN_STAGE_1
+            self.state = TURN_STAGE
             self.start_angle = angle
-        elif self.state is TURN_STAGE_1:
-            state[m2n] = HIGH_SPEED
-            state[m1n] = -HIGH_SPEED
+        if self.state is TURN_STAGE:
             if abs(angle - self.start_angle) > ANGLE_THRESHOLD:
-                self.state = TURN_STAGE_2
-        elif self.state is TURN_STAGE_2:
+                self.state = TURN_END_STAGE
+        if self.state is TURN_END_STAGE:
             state[m2n] = LOW_SPEED
             state[m1n] = -LOW_SPEED
-            if s1.value() < LIGHT_THRESHOLD or s2.value() < LIGHT_THRESHOLD:
+            if self.direction is 'l' and state['onL']:
                 self.state = INACTIVE
+                state['restart_homing'](state['p'])
+                self.cb()
+            if self.direction is 'r' and state['onR']:
+                self.state = INACTIVE
+                state['restart_homing'](state['p'])
                 self.cb()
 
         return state
@@ -57,11 +57,8 @@ class Turn:
 
 if __name__ == '__main__':
     import setup
-    from forward import Forward
-    from center import Center
-    from path import Path
+    from stateMachines import Path, LineFollowing, Forward, Center
     from testPaths import TestPaths
 
-    path = Path(TestPaths.leftRight, state_machines=[Forward(), Center(), Turn()], repeat=True)
-
-    setup.run(path)
+    p = Path(TestPaths.leftRight, state_machines=[LineFollowing(), Forward(), Center(), Turn()], repeat=True)
+    setup.run(p)

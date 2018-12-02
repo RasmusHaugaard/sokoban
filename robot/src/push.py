@@ -1,5 +1,7 @@
-from linefollowing import LineFollowing
 from time import time
+from center import CENTERING_DISTANCE
+
+OVERSHOOT_PER_SPEED = 0.15
 
 INACTIVE = 'INACTIVE'
 START = 'START'
@@ -7,16 +9,15 @@ FORWARD = 'FORWARD'
 WAIT = 'WAIT'
 BACK = 'BACK'
 
-PUSH_DISTANCE = 480
-BACK_DISTANCE = 300
+PUSH_DISTANCE = 26.6
+POST_PUSH_WAIT = 0.0
 
 
 class Push:
     keys = ['p', 'P']
-
-    def __init__(self):
-        self.state = INACTIVE
-        self.lf = LineFollowing()
+    state = INACTIVE
+    wait_start = None
+    cb = None
 
     def start(self, key, cb):
         self.state = START
@@ -24,26 +25,27 @@ class Push:
         self.cb = cb
 
     def __call__(self, per, state):
-        m = per['mL']
+        pos = state['p']
+        speed = abs(state['speed'])
 
         if self.state is START:
-            m.position = 0
+            self.start_pos = pos
             self.state = FORWARD
         elif self.state is FORWARD:
-            state = self.lf(per, state)
-            if m.position > PUSH_DISTANCE:
+            distance = pos - self.start_pos
+            if distance > PUSH_DISTANCE - OVERSHOOT_PER_SPEED * speed:
                 if self.key == 'P':
                     self.state = INACTIVE
                     self.cb()
                 self.state = WAIT
-                self.waitstart = time()
+                self.wait_start = time()
         elif self.state is WAIT:
-            if time() - self.waitstart > 0.1:
+            state['mL'] = state['mR'] = 0
+            if time() - self.wait_start > POST_PUSH_WAIT:
                 self.state = BACK
-                m.position = 0
         elif self.state is BACK:
             state['mL'] = state['mR'] = -100
-            if abs(m.position) > BACK_DISTANCE:
+            if abs(pos - self.start_pos) < CENTERING_DISTANCE + OVERSHOOT_PER_SPEED * 0.65 * speed:
                 self.state = INACTIVE
                 self.cb()
 
@@ -52,9 +54,7 @@ class Push:
 
 if __name__ == '__main__':
     import setup
-    from path import Path
-    from forward import Forward
+    from stateMachines import Path, LineFollowing, Forward
 
-    path = Path('fp', [Forward(), Push()])
-
-    setup.run(path)
+    p = Path('fp', [LineFollowing(), Forward(), Push()])
+    setup.run(p)

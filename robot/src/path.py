@@ -29,10 +29,13 @@ def str_repetition(str):
 
 class Path:
     path = ''
+    running = False
     previous_step_time = None
     machine_durations = {}
 
-    def __init__(self, path, state_machines, replace={'fr': 'fcr', 'fl': 'fcl'}, repeat=False):
+    def __init__(self, path, state_machines,
+                 replace={'fr': 'fcr', 'fl': 'fcl'},
+                 repeat=False):
         # path example: "ffrfr2"
         self.path = path
         self.state_machines = state_machines
@@ -64,6 +67,7 @@ class Path:
         self.i += 1
         if len(self.path) is self.i:
             print("Done with the path in: " + str(time() - self.start_time) + ' seconds.')
+            self.running = False
             for key, durations in self.machine_durations.items():
                 print(key, 'average:', sum(durations) / len(durations))
             if self.repeat:
@@ -71,13 +75,16 @@ class Path:
                 self.next_step()
         else:
             key = self.path[self.i]
-            assert key in self.state_machine_key_map, "'" + str(
-                key) + "' is used in path but not found in stateMachineKeys"
+            assert key in self.state_machine_key_map, \
+                "'" + str(key) + "' is used in path but not found in stateMachineKeys"
             self.state_machine_key_map[key].start(key, self.next_step)
+            self.running = True
 
     def __call__(self, per, state):
         for stateMachine in self.state_machines:
             state = stateMachine(per, state)
+        if not self.running:
+            state['mL'] = state['mR'] = 0
         return state
 
 
