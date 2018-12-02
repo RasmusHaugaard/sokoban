@@ -1,4 +1,5 @@
 CM_PER_TICKS = 30 / 617
+TICKS_PER_CM = 1 / CM_PER_TICKS
 
 
 class Encoder:

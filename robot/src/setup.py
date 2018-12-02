@@ -6,7 +6,7 @@ from signal import signal, SIGINT
 from time import time
 from gyro import Gyro
 from lightsensors import LightSensors
-from encoder import Encoder
+from encoder import Encoder, TICKS_PER_CM
 
 
 def run(fun):
@@ -28,18 +28,23 @@ def run(fun):
     encoder = Encoder()
 
     # Set the motor mode
-    mL.run_direct()
-    mR.run_direct()
     mL.polarity = "normal"  # "inversed"
     mR.polarity = "normal"  # "inversed"
+
+    def stop_motors():
+        mL.run_direct()
+        mR.run_direct()
+        mL.duty_cycle_sp = 0
+        mR.duty_cycle_sp = 0
+
+    stop_motors()
 
     # The example doesn't end on its own.
     # Use CTRL-C to exit it (needs command line).
     # This is a generic way to be informed
     # of this event and then take action.
     def signal_handler(sig, frame):
-        mL.duty_cycle_sp = 0
-        mR.duty_cycle_sp = 0
+        stop_motors()
         print('Shut down gracefully')
         exit(0)
 
@@ -63,8 +68,9 @@ def run(fun):
     last_now = time()
     max_dt = 0
     dts = 0
-    duty_mL = None
-    duty_mR = None
+    speed_mL = None
+    speed_mR = None
+
     while True:
         state = {}
         state = light_sensors(per, state)
@@ -72,14 +78,15 @@ def run(fun):
         state = gyro(per, state)
         state = fun(per, state)
 
-        _duty_mL = state.get('mL', 0)
-        if _duty_mL != duty_mL:
-            duty_mL = _duty_mL
-            mL.duty_cycle_sp = duty_mL
-        _duty_mR = state.get('mR', 0)
-        if _duty_mR != duty_mR:
-            duty_mR = _duty_mR
-            mR.duty_cycle_sp = duty_mR
+        max_speed = 45 * TICKS_PER_CM
+        _speed_mL = state.get('mL', 0)
+        if _speed_mL != speed_mL:
+            speed_mL = _speed_mL
+            mL.run_forever(speed_sp=speed_mL/100 * max_speed)
+        _speed_mR = state.get('mR', 0)
+        if _speed_mR != speed_mR:
+            speed_mR = _speed_mR
+            mR.run_forever(speed_sp=speed_mR/100 * max_speed)
 
         dts += 1
         now = time()
