@@ -46,7 +46,7 @@ class LightSensors:
         fL = not onL and self.onL
         fR = not onR and self.onR
         fAny = fL or fR
-        fBoth = fAny and not onAny
+        fBoth = self.onL and self.onR and not onBoth
 
         for key, val in [
             ('sL', sL), ('sR', sR),
