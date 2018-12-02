@@ -3,6 +3,7 @@ from time import time
 OVERSHOOT_PER_SPEED = 0.18
 
 CENTERING_DISTANCE = 8
+CENTERRING_OFFSET = 2
 PAUSE = 0
 
 INACTIVE = 'INACTIVE'
@@ -27,7 +28,7 @@ class Center:
             self.start_pos = p
             self.state = CENTERING
         elif self.state == CENTERING:
-            if p - self.start_pos > CENTERING_DISTANCE - OVERSHOOT_PER_SPEED * state['speed']:
+            if p - self.start_pos > CENTERING_DISTANCE - CENTERRING_OFFSET - OVERSHOOT_PER_SPEED * state['speed']:
                 self.state = WAIT
                 self.wait_start = time()
         elif self.state == WAIT:
