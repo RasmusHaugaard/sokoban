@@ -1,7 +1,7 @@
 from time import time
 from center import CENTERING_DISTANCE
 
-OVERSHOOT_PER_SPEED = 0.11
+OVERSHOOT_PER_SPEED = 0.15
 
 INACTIVE = 'INACTIVE'
 START = 'START'
@@ -10,7 +10,6 @@ WAIT = 'WAIT'
 BACK = 'BACK'
 
 PUSH_DISTANCE = 26.6
-#BACK_DISTANCE = 18.2
 POST_PUSH_WAIT = 0.0
 
 
@@ -55,7 +54,7 @@ class Push:
                 self.state = BACK
         elif self.state is BACK:
             state['mL'] = state['mR'] = -100
-            if abs(pos - self.start_pos) < CENTERING_DISTANCE + OVERSHOOT_PER_SPEED * speed:
+            if abs(pos - self.start_pos) < CENTERING_DISTANCE + OVERSHOOT_PER_SPEED * 0.65 * speed:
                 self.state = INACTIVE
                 self.cb()
 

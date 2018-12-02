@@ -78,7 +78,7 @@ def run(fun):
         state = gyro(per, state)
         state = fun(per, state)
 
-        max_speed = 45 * TICKS_PER_CM
+        max_speed = 40 * TICKS_PER_CM
         _speed_mL = state.get('mL', 0)
         if _speed_mL != speed_mL:
             speed_mL = _speed_mL

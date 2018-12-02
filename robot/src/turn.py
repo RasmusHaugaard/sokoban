@@ -1,18 +1,15 @@
 INACTIVE = 'INACTIVE'
 START = 'START'
 TURN_STAGE = 'TURN'
-U_TURN_STAGE_1 = 'TURN1'
-U_TURN_STAGE_2 = 'TURN2'
 TURN_END_STAGE = 'TURN_END'
 
 ANGLE_THRESHOLD = 40
-ANGLE_THRESHOLD_U_TURN = 20
 HIGH_SPEED = 100
 LOW_SPEED = 40
 
 
 class Turn:
-    keys = ['l', 'r', 'u']
+    keys = ['l', 'r']
     state = INACTIVE
     start_angle = None
     direction = None
@@ -42,21 +39,14 @@ class Turn:
             self.start_angle = angle
         if self.state is TURN_STAGE:
             if abs(angle - self.start_angle) > ANGLE_THRESHOLD:
-                if self.direction == 'u':
-                    self.state = U_TURN_STAGE_1
-                else:
-                    self.state = TURN_END_STAGE
-        if self.state is U_TURN_STAGE_1:
-            if state['fL']:  # we are turning right around
-                self.start_angle = angle
-                self.state = U_TURN_STAGE_2
-        if self.state is U_TURN_STAGE_2:
-            if abs(angle - self.start_angle) > ANGLE_THRESHOLD_U_TURN:
                 self.state = TURN_END_STAGE
         if self.state is TURN_END_STAGE:
             state[m2n] = LOW_SPEED
             state[m1n] = -LOW_SPEED
-            if self.direction is 'l' and state['onL'] or state['onR']:
+            if self.direction is 'l' and state['onL']:
+                self.state = INACTIVE
+                self.cb()
+            if self.direction is 'r' and state['onR']:
                 self.state = INACTIVE
                 self.cb()
 
