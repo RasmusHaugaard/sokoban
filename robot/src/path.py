@@ -64,7 +64,6 @@ class Path:
             self.machine_durations[tuple(machine.keys)] = durations
         else:
             self.previous_step_time = time()
-        print('Step', self.i, 'done')
         self.i += 1
         if len(self.path) is self.i:
             print("Done with the path in: " + str(time() - self.start_time) + ' seconds.')

@@ -32,6 +32,8 @@ def run(fun):
     mR.run_direct()
     mL.polarity = "normal"  # "inversed"
     mR.polarity = "normal"  # "inversed"
+    mL.position = 0
+    mR.position = 0
 
     # The example doesn't end on its own.
     # Use CTRL-C to exit it (needs command line).

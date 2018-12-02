@@ -2,11 +2,11 @@ STRAIGHT = 'STRAIGHT'
 LEFT = 'LEFT'
 RIGHT = 'RIGHT'
 
-THRESHOLD = 50
-BASE_SPEED = 90
-TURN_SPEED = BASE_SPEED * 0.7
+BASE_SPEED = 100
+TURN_SPEED = BASE_SPEED * 0.6
+TARGET_TURN_SPEED = BASE_SPEED * 0.9
 
-DEBOUNCE_DISTANCE = 1
+DEBOUNCE_DISTANCE = 2
 HOMING_DISTANCE = 60
 
 
@@ -22,19 +22,26 @@ class LineFollowing:
     def __call__(self, per, s):
 
         if s['onBoth']:
+            if not self.drive == STRAIGHT:
+                self.drive = STRAIGHT
+                print('DRIVE STRAIGHT')
+        elif s['fBoth'] and self.debounce_start_pos is None:
             self.drive = STRAIGHT
-        elif s['fBoth']:
             self.debounce_start_pos = s['pL'], s['pR']
+            print('debounce started', s['p'])
         elif self.debounce_start_pos is not None:
             pL, pR = s['pL'], s['pR']
             spL, spR = self.debounce_start_pos
             abs_dist = (abs(pL-spL) + abs(pR-spR)) / 2
             if abs_dist > DEBOUNCE_DISTANCE:
                 self.debounce_start_pos = None
-        elif s['onL']:
+                print('debounce ended', s['p'])
+        elif s['onL'] and not self.drive == LEFT:
             self.drive = LEFT
-        elif s['onR']:
+            print('DRIVE LEFT')
+        elif s['onR'] and not self.drive == RIGHT:
             self.drive = RIGHT
+            print('DRIVE RIGHT')
 
         if self.drive == STRAIGHT:
             s['mL'] = BASE_SPEED
@@ -53,7 +60,7 @@ class LineFollowing:
         if mi > ma:
             mi, ma, mi_key, ma_key = ma, mi, ma_key, mi_key
         t = min(distance / HOMING_DISTANCE, 1)
-        target = mi + (ma - mi) * 0.5
+        target = BASE_SPEED * 0.8
         mi = mi + (target - mi) * t
         s[mi_key] = mi
 
