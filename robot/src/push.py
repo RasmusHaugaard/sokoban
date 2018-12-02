@@ -33,15 +33,6 @@ class Push:
             self.state = FORWARD
         elif self.state is FORWARD:
             distance = pos - self.start_pos
-
-            mi, ma, mi_key, ma_key = state['mL'], state['mR'], 'mL', 'mR'
-            if mi > ma:
-                mi, ma, mi_key, ma_key = ma, mi, ma_key, mi_key
-            t = distance / PUSH_DISTANCE
-            target = mi + (ma - mi) * 0.5
-            mi = mi + (target - mi) * t
-            state[mi_key] = mi
-
             if distance > PUSH_DISTANCE - OVERSHOOT_PER_SPEED * speed:
                 if self.key == 'P':
                     self.state = INACTIVE

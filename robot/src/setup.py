@@ -14,6 +14,8 @@ def run(fun):
     mL = LargeMotor('outC')
     mR = LargeMotor('outB')
 
+    mL.position
+
     sL = ColorSensor('in1')
     sR = ColorSensor('in4')
     gy = GyroSensor('in3')
@@ -30,6 +32,8 @@ def run(fun):
     # Set the motor mode
     mL.polarity = "normal"  # "inversed"
     mR.polarity = "normal"  # "inversed"
+    mL.position = 0
+    mR.position = 0
 
     def stop_motors():
         mL.run_direct()
