@@ -1,6 +1,6 @@
 """
 The min-matching heuristic should calculate the actual
-cost of test-map3 and test-map4 from the initial states.
+cost of test-map3(b) and test-map4 from the initial states.
 """
 
 from MapLoader import load_map
@@ -19,7 +19,8 @@ c = {
 
 for map_path, opt_sol in (
         ('test-map3.txt', 'ffFFFFFprfFFprfFFFFFF'),
-        ('test-map4.txt', 'fFplfprfprf')
+        ('test-map4.txt', 'fFplfprfprf'),
+        ('test-map3b.txt', 'ffFFFFFprfFFFFprfffFFFF'),
 ):
     print('Map:', map_path)
     _map, initial_states = load_map(map_path)
