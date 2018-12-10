@@ -33,7 +33,7 @@ class MinMatchingHeuristic:
             for j, goal in enumerate(self.goals):
                 move = diamond + goal
                 self.cm[i, j] = min(1e100, self.diamond_move_cost_cache[move])
-        costs = self.cm[linear_sum_assignment(self.cm)].sum()
+        costs = self.cm[linear_sum_assignment(self.cm)]
         h = costs.sum()
         if h >= 1e100: return inf, []
         if h == 0: return 0, []
