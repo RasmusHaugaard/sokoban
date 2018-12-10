@@ -47,6 +47,7 @@ def solve(_map, initial_states, NodeExpander, Heuristic, unit_cost):
         closed_set.add(hash(parent))
 
         if is_solution(_map, parent):
+            print('')
             print('Solution found in {} seconds'.format(time() - _heu_time))
             print('Total time: {} seconds'.format(time() - _start_time))
             expanded_nodes_count = _extracted_nodes_count - _extracted_nodes_in_closed_set
@@ -75,8 +76,10 @@ def solve(_map, initial_states, NodeExpander, Heuristic, unit_cost):
 
         open_list.add_children(children)
 
-        if (_extracted_nodes_count - _extracted_nodes_in_closed_set) % 1000 == 0:
-            print((_extracted_nodes_count - _extracted_nodes_in_closed_set) // 1000, 'k nodes expanded, min h:', _min_h)
+        expanded_nodes_count = _extracted_nodes_count - _extracted_nodes_in_closed_set
+        if expanded_nodes_count % 1000 == 0:
+            print(' {} k nodes expanded, min h: {:.2f}   '.format(expanded_nodes_count // 1000, _min_h), end='\r')
+    print('')
     return None
 
 
