@@ -25,36 +25,53 @@ class MinMatchingHeuristic:
         # heuristic cache will be built lazily
         self.h_cache = {}
 
-    def hungarian(self, diamonds):
+    def calculate_diamond_state_cost(self, diamonds):
+        # Add underestimate of moving diamonds to goals,
+        # assuming the agent is in the best possible position before moving each diamond
+        # Build a cost matrix and find the lowest goal-assignment by the hungarian method
         for i, diamond in enumerate(diamonds):
             for j, goal in enumerate(self.goals):
                 move = diamond + goal
                 self.cm[i, j] = min(1e100, self.diamond_move_cost_cache[move])
-        costs = self.cm[linear_sum_assignment(self.cm)]
+        costs = self.cm[linear_sum_assignment(self.cm)].sum()
         h = costs.sum()
         if h >= 1e100: return inf, []
-        d = []
+        if h == 0: return 0, []
+        d = []  # diamonds to be pushed
         for i, c in enumerate(costs):
             if c > 0: d.append(diamonds[i])
+
+        # Add underestimated cost of moving the agent between the diamonds
+        for i, goal in enumerate(self.goals):
+            for j, diamond in enumerate(diamonds):
+                move = goal + (ANY,) + diamond + (ANY,)
+                c = self.agent_move_cost_cache[move]
+                if c == 0:
+                    self.cm[i, j] = 0
+                else:
+                    self.cm[i, j] = max(
+                        c - self.unit_cost.forward,
+                        self.unit_cost.turn + self.unit_cost.forward
+                    )
+        costs = self.cm[linear_sum_assignment(self.cm)]
+        h += costs.sum() - costs.max()
+
         return h, d
 
     def __call__(self, state):
-        # cost of moving diamonds to goals
+        # underestimated cost of moving all diamonds to goals
+        # assuming the agent starts at any of the diamonds
         h, d = self.h_cache.get(state.diamonds, (None, []))
         if h is None:
-            h, d = self.hungarian(state.diamonds)
+            h, d = self.calculate_diamond_state_cost(state.diamonds)
             self.h_cache[state.diamonds] = (h, d)
 
-        # if deadlock or done
-        if h >= inf or h == 0: return h
+        # return if deadlock or done
+        if h == inf or h == 0: return h
 
         # Fix: cost of pushing the last diamond is not
         # actually added in the node expander
         h -= self.unit_cost.push
-
-        # add cost of at least turning and driving forward once
-        # after every diamond to be moved but the last
-        h += (self.unit_cost.turn + self.unit_cost.forward) * (len(d) - 1)
 
         # add cost of moving the agent to the 'closest' diamond not on a goal
         mi = inf
