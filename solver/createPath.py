@@ -2,9 +2,8 @@ def create_path(solution):
     path = ''
 
     for i in range(len(solution) - 1):
-
         difference = solution[i].agent[2] - solution[i + 1].agent[2]
-        did_push = solution[i].diamonds != solution[i - 1].diamonds
+        did_push = solution[i].diamonds != solution[max(i - 1, 0)].diamonds
 
         if did_push and difference != 0:
             path += 'p'
@@ -16,7 +15,10 @@ def create_path(solution):
         elif abs(difference) == 2:
             path += 'll'
 
-        path += 'f'
+        if did_push and difference == 0:
+            path += 'F'
+        else:
+            path += 'f'
 
     return path + 'P'
 
