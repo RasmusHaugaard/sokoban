@@ -6,6 +6,7 @@ gy = GyroSensor('in1')
 gy.mode = 'GYRO-FAS'
 time.sleep(0.1)
 
+
 def intstr(val):
     return (' ' * 5 + str(val))[-5:]
 

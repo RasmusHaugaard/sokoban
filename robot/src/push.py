@@ -1,5 +1,5 @@
 from time import time
-from center import CENTERING_DISTANCE
+from .center import CENTERING_DISTANCE
 
 OVERSHOOT_PER_SPEED = 0.15
 
@@ -53,8 +53,8 @@ class Push:
 
 
 if __name__ == '__main__':
-    import setup
-    from stateMachines import Path, LineFollowing, Forward
+    from . import setup
+    from .stateMachines import Path, LineFollowing, Forward
 
     p = Path('fp', [LineFollowing(), Forward(), Push()])
     setup.run(p)

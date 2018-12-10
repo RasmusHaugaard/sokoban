@@ -4,17 +4,16 @@ from ev3dev.ev3 import GyroSensor
 
 from signal import signal, SIGINT
 from time import time
-from gyro import Gyro
-from lightsensors import LightSensors
-from encoder import Encoder, TICKS_PER_CM
+
+from .gyro import Gyro
+from .lightsensors import LightSensors
+from .encoder import Encoder, TICKS_PER_CM
 
 
 def run(fun):
     # Connect two motors and two (different) light sensors
     mL = LargeMotor('outC')
     mR = LargeMotor('outB')
-
-    mL.position
 
     sL = ColorSensor('in1')
     sR = ColorSensor('in4')

@@ -90,7 +90,7 @@ class LineFollowing:
 
 
 if __name__ == '__main__':
-    import setup
+    from . import setup
 
     lf = LineFollowing()
     setup.run(lf)

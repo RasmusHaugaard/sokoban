@@ -29,8 +29,8 @@ class Forward:
 
 
 if __name__ == '__main__':
-    import setup
-    from stateMachines import LineFollowing, Path
+    from . import setup
+    from .stateMachines import LineFollowing, Path
 
     p = Path('f', [LineFollowing(), Forward()])
     setup.run(p)

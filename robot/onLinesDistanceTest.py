@@ -1,4 +1,4 @@
-from setup import run
+from .src.setup import run
 
 
 class OnLinesDistanceTest:

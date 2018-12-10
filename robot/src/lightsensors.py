@@ -22,19 +22,6 @@ class LightSensors:
         onL = sL < self.threshold
         onR = sR < self.threshold
 
-        # cur_onL = sL < self.threshold
-        # cur_onR = sR < self.threshold
-        # if cur_onL == self.deb_onL:
-        #     onL = cur_onL
-        # else:
-        #     onL = self.onL
-        # if cur_onR == self.deb_onR:
-        #     onR = cur_onR
-        # else:
-        #     onR = self.onR
-        # self.deb_onL = cur_onL
-        # self.deb_onR = cur_onR
-
         onBoth = onL and onR
         onAny = onL or onR
 

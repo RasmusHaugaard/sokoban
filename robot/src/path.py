@@ -94,14 +94,15 @@ if __name__ == '__main__':
         state = False
         cb = None
 
-        def start(self, key, cb):
+        def start(self, _, cb):
             self.state = True
             self.cb = cb
 
-        def __call__(self, per, state):
+        def __call__(self, _, state):
             if self.state is True:
                 self.state = False
                 self.cb()
+            return state
 
 
     f = FakeMachine()
