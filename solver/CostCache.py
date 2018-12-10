@@ -146,29 +146,32 @@ def floyd_warshall_inplace(cost):
 
 
 def floyd_warshall_inplace_fast(cost):
+    """
+    Faster Floyd Warshall implementation, especially with sparse edges
+    """
     n = int(math.sqrt(cost.size))
     cost = cost.reshape((n, n))
-    f = inf
-    ii = []
-    jj = []
-    for k in range(n):  # for each row in the cost matrix
+    for k in range(n):  # for each pivot node k
         K = cost[k]
 
-        # only check rows with possible changes
-        ii.clear()
-        jj.clear()
-        for l in chain(range(k), range(k + 1, n)):
-            if cost[l][k] != f:
-                ii += [(l, cost[l][k])]
-            if K[l] != f:
-                jj += [(l, K[l])]
+        # only go through start- and end nodes
+        # that might benefit from using k as pivot node
+        _i = []
+        _j = []
+        for idx in chain(range(k), range(k + 1, n)):  # i -> i -> j == i -> j -> j == i -> j
+            # if i -> k is inf, then i -> k -> j >= i -> j
+            if cost[idx][k] != inf:
+                _i += [(idx, cost[idx][k])]
+            # if k -> j is inf, then i -> k -> j >= i -> j
+            if K[idx] != inf:
+                _j += [(idx, K[idx])]
 
-        # actual Floyd Warshall
-        for i, di in ii:
-            I = cost[i]
-            for j, dj in jj:
-                if dj + di < I[j]:
-                    I[j] = dj + di
+        # Floyd Warshall, but with less iterations
+        for i, c_ik in _i:
+            I = cost[i]  # pre-index the start-node
+            for j, c_kj in _j:
+                if c_ik + c_kj < I[j]:
+                    I[j] = c_ik + c_kj
 
 
 def expand_with_any_dir(cost):
