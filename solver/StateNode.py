@@ -24,6 +24,7 @@ class StateNode:
     def from_str(text):
         agent, diamonds = text.split(':')
         agent = tuple([int(x) for x in agent[1:-1].split(',')])
+        diamonds = diamonds.replace('),)', '))')
         diamonds = diamonds[3:-2].replace('(', '').split('),')
         diamonds = [diamond.split(',') for diamond in diamonds]
         diamonds = [(int(diamond[0]), int(diamond[1].replace(')', ''))) for diamond in diamonds]
