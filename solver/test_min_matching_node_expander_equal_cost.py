@@ -19,8 +19,9 @@ c = {
 
 for map_path, opt_sol in (
         ('test-map3.txt', 'ffFFFFFprfFFprfFFFFFF'),
-        ('test-map4.txt', 'fFplfprfprf'),
         ('test-map3b.txt', 'ffFFFFFprfFFFFprfffFFFF'),
+        ('test-map3c.txt', 'ffFFFprfFprffFFF'),
+        ('test-map4.txt', 'fFplfprfprf'),
 ):
     print('Map:', map_path)
     _map, initial_states = load_map(map_path)
@@ -30,7 +31,7 @@ for map_path, opt_sol in (
     heuristic = Heuristic(_map, default_unit_cost)
     min_h = float('inf')
     for node in initial_states:
-        h = heuristic(node)
+        h, _ = heuristic(node)
         if h < min_h: min_h = h
 
     exp_cost = 0
