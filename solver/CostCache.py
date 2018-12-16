@@ -191,19 +191,6 @@ def expand_with_any_dir(cost):
     return cost.reshape((h, w, 5, h, w, 5))
 
 
-def get_path(_next, start, end):  # start/end: (x, y, orientation)
-    """
-    builds a list of pos/orientations from the _next matrix
-    and the start and end state
-    """
-    path = [start]
-    cur = start
-    while cur != end:
-        cur = _next[cur + end]
-        path.append(cur)
-    return path
-
-
 def build_diamond_move_cost_cache(_map, unit_cost):
     cost = init_diamond_weight_matrix(_map, unit_cost)
     floyd_warshall_inplace_fast(cost)
