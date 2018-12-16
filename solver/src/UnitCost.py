@@ -12,11 +12,11 @@ class UnitCost:
 
 # default_unit_cost found by testing unit moves separately
 default_unit_cost = UnitCost(
-    forward=1.06,
-    turn=0.452,
-    u_turn=0.353 * 2,
-    forward_diamond=1.124,
-    push=1.43
+    forward=0.94,
+    turn=0.37,
+    u_turn=0.41 * 2,
+    forward_diamond=0.98,
+    push=1.05
 )
 
 

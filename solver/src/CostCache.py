@@ -8,7 +8,7 @@ of moving a diamond from any position to any other
 """
 
 import numpy as np
-from MapLoader import WALL
+from .MapLoader import WALL
 import math
 from itertools import chain
 

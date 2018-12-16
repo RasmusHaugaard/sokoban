@@ -24,7 +24,7 @@ def create_path(solution):
 
 
 def main():
-    from SolutionExplorer import load_solution
+    from .exploreSolution import load_solution
     import sys
 
     if len(sys.argv) < 2:

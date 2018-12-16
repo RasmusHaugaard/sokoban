@@ -83,10 +83,10 @@ class OpenListHeap:
 
     def add_children(self, children):
         for child in children:
-            heapq.heappush(self.h, (child.total_cost, child))
+            heapq.heappush(self.h, child)
 
     def extract_min(self):
-        return heapq.heappop(self.h)[1]
+        return heapq.heappop(self.h)
 
 
 if __name__ == '__main__':

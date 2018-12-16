@@ -1,5 +1,5 @@
 import numpy as np
-from MapLoader import GOAL
+from .MapLoader import GOAL
 
 
 class ManhattanHeuristic:
@@ -19,12 +19,15 @@ class ManhattanHeuristic:
 
 
 def main():
-    from MapLoader import load_map
+    from .MapLoader import load_map
 
-    for map_path, expected_h in [('test-map1.txt', 5), ('test-map2.txt', 2)]:
-        _map, init_state = load_map(map_path)
-        manhattan_heuristic = ManhattanHeuristic(_map, init_state)
-        h = manhattan_heuristic(init_state)
+    for map_path, expected_h in [
+        ('solver/maps/test-map1.txt', 5),
+        ('solver/maps/test-map2.txt', 2),
+    ]:
+        _map, init_states = load_map(map_path)
+        manhattan_heuristic = ManhattanHeuristic(_map, None)
+        h = manhattan_heuristic(init_states[0])
         assert h == expected_h, 'got {}, expected {}'.format(h, expected_h)
 
     print('Tests succeeded')

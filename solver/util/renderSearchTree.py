@@ -1,12 +1,11 @@
 import sys
-
-from MapLoader import load_map
-from AgentStateNodeExpander import AgentStateNodeExpander as NodeExpander
-from Solver import solve
-from MinMatchingHeuristic import MinMatchingHeuristic as Heuristic
-from UnitCost import default_unit_cost
-
 from graphviz import Digraph
+
+from ..src.MapLoader import load_map
+from ..src.AgentStateNodeExpander import AgentStateNodeExpander as NodeExpander
+from ..Solver import solve
+from ..src.MinMatchingHeuristic import MinMatchingHeuristic as Heuristic
+from ..src.UnitCost import default_unit_cost
 
 DIR_NAME = ['U', 'R', 'D', 'L']
 

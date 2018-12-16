@@ -1,4 +1,4 @@
-from createPath import create_path
+from .createPath import create_path
 
 
 def calc_solution_cost(solution, unit_cost):
@@ -24,8 +24,8 @@ def calc_solution_cost(solution, unit_cost):
 
 
 def main():
-    from SolutionExplorer import load_solution
-    from UnitCost import default_unit_cost
+    from .exploreSolution import load_solution
+    from ..src.UnitCost import default_unit_cost
     import sys
 
     if len(sys.argv) < 2:

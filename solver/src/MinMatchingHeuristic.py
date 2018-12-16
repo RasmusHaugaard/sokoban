@@ -1,7 +1,8 @@
 import numpy as np
-from MapLoader import GOAL
-import CostCache
 from scipy.optimize import linear_sum_assignment
+
+from .MapLoader import GOAL
+from . import CostCache
 
 ANY = CostCache.ANY
 inf = float('inf')
@@ -21,7 +22,7 @@ class MinMatchingHeuristic:
         # pre-init cost matrix
         n = len(self.goals)
         self.cm = np.empty((n, n), np.float)
-
+        self.cma = np.zeros((n + 1, n + 1), np.float)
         # heuristic cache will be built lazily
         self.h_cache = {}
 
@@ -35,8 +36,9 @@ class MinMatchingHeuristic:
                 self.cm[i, j] = min(1e100, self.diamond_move_cost_cache[move])
         costs = self.cm[linear_sum_assignment(self.cm)]
         h = costs.sum()
-        if h >= 1e100: return inf, []
-        if h == 0: return 0, []
+        dc = h
+        if h >= 1e100: return inf, [], 0, 0
+        if h == 0: return 0, [], 0, 0
         d = []  # diamonds to be pushed
         for i, c in enumerate(costs):
             if c > 0: d.append(diamonds[i])
@@ -47,27 +49,28 @@ class MinMatchingHeuristic:
                 move = goal + (ANY,) + diamond + (ANY,)
                 c = self.agent_move_cost_cache[move]
                 if c == 0:
-                    self.cm[i, j] = 0
+                    self.cma[i, j] = 0
                 else:
-                    self.cm[i, j] = max(
+                    self.cma[i, j] = max(
                         c - self.unit_cost.forward,
                         self.unit_cost.turn + self.unit_cost.forward
                     )
-        costs = self.cm[linear_sum_assignment(self.cm)]
-        h += costs.sum() - costs.max()
+        costs = self.cma[linear_sum_assignment(self.cma)]
+        ac = costs.sum()
+        h += ac
 
-        return h, d
+        return h, d, dc, ac
 
     def __call__(self, state):
         # underestimated cost of moving all diamonds to goals
         # assuming the agent starts at any of the diamonds
-        h, d = self.h_cache.get(state.diamonds, (None, []))
+        h, d, dc, ac = self.h_cache.get(state.diamonds, (None, [], 0, 0))
         if h is None:
-            h, d = self.calculate_diamond_state_cost(state.diamonds)
-            self.h_cache[state.diamonds] = (h, d)
+            h, d, dc, ac = self.calculate_diamond_state_cost(state.diamonds)
+            self.h_cache[state.diamonds] = (h, d, dc, ac)
 
         # return if deadlock or done
-        if h == inf or h == 0: return h
+        if h == inf or h == 0: return h, (0, 0, 0)
 
         # Fix: cost of pushing the last diamond is not
         # actually added in the node expander
@@ -81,12 +84,13 @@ class MinMatchingHeuristic:
             if c < mi: mi = c
         if mi < inf: h += mi
 
-        return h
+        # return the total heuristic and the components for potential debugging / visualization
+        return h, (dc, ac, mi)
 
 
 def main():
-    from MapLoader import load_map
-    from UnitCost import default_unit_cost
+    from .MapLoader import load_map
+    from .UnitCost import default_unit_cost
 
     for map_path in ['test-map1.txt', 'test-map2.txt']:
         _map, init_state = load_map(map_path)

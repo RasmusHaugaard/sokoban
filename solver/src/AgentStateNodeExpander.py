@@ -1,7 +1,7 @@
 import numpy as np
-from MapLoader import WALL
-from StateNode import StateNode
-from CostCache import move
+from .MapLoader import WALL
+from .StateNode import StateNode
+from .CostCache import move
 
 UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3
 
@@ -83,7 +83,7 @@ class AgentStateNodeExpander:
 
 
 def test():
-    from UnitCost import default_unit_cost
+    from .UnitCost import default_unit_cost
 
     _map = np.array([
         [b'X', b'X', b'X'],

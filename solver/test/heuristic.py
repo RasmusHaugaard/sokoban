@@ -3,11 +3,11 @@ The min-matching heuristic should calculate the actual
 cost of test-map3(b) and test-map4 from the initial states.
 """
 
-from MapLoader import load_map
-from Solver import solve
-from AgentStateNodeExpander import AgentStateNodeExpander as NodeExpander
-from MinMatchingHeuristic import MinMatchingHeuristic as Heuristic
-from UnitCost import default_unit_cost
+from ..src.MapLoader import load_map
+from ..Solver import solve
+from ..src.AgentStateNodeExpander import AgentStateNodeExpander as NodeExpander
+from ..src.MinMatchingHeuristic import MinMatchingHeuristic as Heuristic
+from ..src.UnitCost import default_unit_cost
 
 c = {
     'f': default_unit_cost.forward,
@@ -24,7 +24,7 @@ for map_path, opt_sol in (
         ('test-map4.txt', 'fFplfprfprf'),
 ):
     print('Map:', map_path)
-    _map, initial_states = load_map(map_path)
+    _map, initial_states = load_map('solver/maps/' + map_path)
 
     end_node = solve(_map, initial_states, NodeExpander, Heuristic, default_unit_cost)
 

@@ -1,18 +1,8 @@
-from draw import draw_state
-from MapLoader import load_map
-from StateNode import StateNode
 import getch
 import sys
 
-
-def load_solution(path):
-    _map, _ = load_map(path)
-    with open(path, 'r') as f:
-        _, h, _ = [int(v) for v in f.readline().split()]
-        for _ in range(h):
-            f.readline()
-        solution = [StateNode.from_str(line) for line in f.readlines() if ':' in line]
-    return _map, solution
+from .draw import draw_state
+from .util import load_solution
 
 
 def main():

@@ -1,4 +1,4 @@
-from StateNode import StateNode
+from .StateNode import StateNode
 import numpy as np
 
 AGENT = b'M'
@@ -63,9 +63,9 @@ def load_map(path):
 
 
 def main():
-    print(*load_map('test-map1.txt'))
+    print(*load_map('solver/maps/test-map1.txt'))
     print('')
-    print(*load_map('test-map2.txt'))
+    print(*load_map('solver/maps/test-map2.txt'))
 
 
 if __name__ == '__main__':
