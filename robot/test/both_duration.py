@@ -30,8 +30,8 @@ class BothDurationTest:
 
 
 def main():
-    from src import setup
-    from src.linefollowing import LineFollowing
+    from ..src import setup
+    from ..src.linefollowing import LineFollowing
     test = BothDurationTest()
     lf = LineFollowing()
 
