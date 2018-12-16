@@ -4,22 +4,16 @@ RIGHT = 'RIGHT'
 
 BASE_SPEED = 100
 TURN_SPEED = BASE_SPEED * 0.6
-TARGET_TURN_SPEED = BASE_SPEED * 0.9
 
-DEBOUNCE_DISTANCE = 1
-HOMING_DISTANCE = 60
+DEBOUNCE_DISTANCE = 1  # cm
 
 
 class LineFollowing:
     def __init__(self):
         self.drive = STRAIGHT
         self.debounce_start_pos = None
-        self.homing_start_pos = 0
         self.start_pos_L = 0
         self.start_pos_R = 0
-
-    def restart_homing(self, pos):
-        self.homing_start_pos = pos
 
     def __call__(self, per, s):
         if s['rL']:
@@ -72,19 +66,6 @@ class LineFollowing:
         elif self.drive == LEFT:
             s['mL'] = TURN_SPEED
             s['mR'] = BASE_SPEED
-
-        pos = s['p']
-        distance = pos - self.homing_start_pos
-
-        mi, ma, mi_key, ma_key = s['mL'], s['mR'], 'mL', 'mR'
-        if mi > ma:
-            mi, ma, mi_key, ma_key = ma, mi, ma_key, mi_key
-        t = min(distance / HOMING_DISTANCE, 1)
-        target = BASE_SPEED * 0.8
-        mi = mi + (target - mi) * t
-        s[mi_key] = mi
-
-        s['restart_homing'] = self.restart_homing
 
         return s
 

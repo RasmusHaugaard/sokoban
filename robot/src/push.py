@@ -1,4 +1,3 @@
-from time import time
 from .center import CENTERING_DISTANCE
 
 OVERSHOOT_PER_SPEED = 0.15
@@ -6,17 +5,15 @@ OVERSHOOT_PER_SPEED = 0.15
 INACTIVE = 'INACTIVE'
 START = 'START'
 FORWARD = 'FORWARD'
-WAIT = 'WAIT'
 BACK = 'BACK'
 
 PUSH_DISTANCE = 26.6
-POST_PUSH_WAIT = 0.0
 
 
 class Push:
     keys = ['p', 'P']
     state = INACTIVE
-    wait_start = None
+    key = None
     cb = None
 
     def start(self, key, cb):
@@ -31,19 +28,14 @@ class Push:
         if self.state is START:
             self.start_pos = pos
             self.state = FORWARD
-        elif self.state is FORWARD:
+        if self.state is FORWARD:
             distance = pos - self.start_pos
             if distance > PUSH_DISTANCE - OVERSHOOT_PER_SPEED * speed:
                 if self.key == 'P':
                     self.state = INACTIVE
                     self.cb()
-                self.state = WAIT
-                self.wait_start = time()
-        elif self.state is WAIT:
-            state['mL'] = state['mR'] = 0
-            if time() - self.wait_start > POST_PUSH_WAIT:
                 self.state = BACK
-        elif self.state is BACK:
+        if self.state is BACK:
             state['mL'] = state['mR'] = -100
             if abs(pos - self.start_pos) < CENTERING_DISTANCE + OVERSHOOT_PER_SPEED * 0.65 * speed:
                 self.state = INACTIVE
