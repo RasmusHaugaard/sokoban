@@ -1,9 +1,28 @@
 import gc
 import os
 import psutil
+import numpy as np
 
-from ..src.MapLoader import load_map
+from ..src.MapLoader import load_map, GOAL
 from ..src.StateNode import StateNode
+
+DIRECTIONS = 0, 1, 2, 3, 4
+UP, RIGHT, DOWN, LEFT, ANY = DIRECTIONS
+OPPOSITE_DIR = [DOWN, LEFT, UP, RIGHT, ANY]
+
+
+def move(y, x, d):
+    if d == UP:
+        return y - 1, x
+    elif d == RIGHT:
+        return y, x + 1
+    elif d == DOWN:
+        return y + 1, x
+    return y, x - 1
+
+
+def get_goals(_map):
+    return [tuple(goal) for goal in np.argwhere(_map == GOAL)]
 
 
 def load_solution(path):

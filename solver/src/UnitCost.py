@@ -14,7 +14,7 @@ class UnitCost:
 default_unit_cost = UnitCost(
     forward=0.94,
     turn=0.37,
-    u_turn=0.41 * 2,
+    u_turn=0.37 * 2,
     forward_diamond=0.98,
     push=1.05
 )

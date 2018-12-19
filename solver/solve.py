@@ -1,19 +1,21 @@
 import os
 import sys
+
 from .src.AgentStateNodeExpander import AgentStateNodeExpander as NodeExpander
-from .src.MinMatchingHeuristic import MinMatchingHeuristic as Heuristic
-from .src.UnitCost import default_unit_cost
+from .src.Heuristics import get_heuristic
+from .src.UnitCost import default_unit_cost as unit_cost
 from .src.MapLoader import load_map
 from .src.Solver import solve
 
 
 def main():
-    if len(sys.argv) < 2:
-        print('no map file argument given')
+    if len(sys.argv) < 3:
+        print('need both map and heuristic arguments')
         return
     map_path = sys.argv[1]
+    Heuristic = get_heuristic(sys.argv[2])
     _map, initial_states = load_map(map_path)
-    node = solve(_map, initial_states, NodeExpander, Heuristic, default_unit_cost, verbose=True)
+    node = solve(_map, initial_states, NodeExpander, Heuristic, unit_cost, verbose=True)
 
     if not node:
         print('Did not find a solution')
@@ -34,7 +36,7 @@ def main():
     solution_path = '{}/{}:{}.txt'.format(
         solution_dir_path,
         os.path.basename(map_path).split('.')[0],
-        str(default_unit_cost).replace(' ', '')
+        str(unit_cost).replace(' ', '')
     )
     solution_file = open(solution_path, 'w')
 

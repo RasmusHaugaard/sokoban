@@ -9,10 +9,10 @@ inf = float('inf')
 
 
 def solve(_map, initial_states, NodeExpander, Heuristic, unit_cost, verbose=False, assign_children_to_parent=False):
-    _start_time = time.time()
+    _start_time = time.process_time()
     node_expander = NodeExpander(_map, unit_cost)
     heuristic = Heuristic(_map, unit_cost)
-    _search_start_time = time.time()
+    _search_start_time = time.process_time()
 
     open_list = OpenList()
     closed_set = {}
@@ -36,7 +36,7 @@ def solve(_map, initial_states, NodeExpander, Heuristic, unit_cost, verbose=Fals
 
         if parent.diamonds == diamonds_solution:
             if verbose:
-                end_time = time.time()
+                end_time = time.process_time()
                 print('')
                 print('Memory usage: {} MBs'.format(get_memory_usage()))
                 print('Expanded nodes: {}'.format(_expanded_nodes_count))

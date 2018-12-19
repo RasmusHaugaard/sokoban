@@ -15,12 +15,14 @@ def calc_solution_cost(solution, unit_cost):
         'p': unit_cost.push,
     }
 
-    c = 0
-
+    cur_c = 0
+    node_path_costs = [cur_c]
     for s in path:
-        c += cd[s]
+        cur_c += cd[s]
+        if s == 'f' or s == 'F':
+            node_path_costs.append(cur_c)
 
-    return c
+    return node_path_costs
 
 
 def main():
@@ -32,7 +34,7 @@ def main():
         print("no solution file argument given")
         return
     _, solution = load_solution(sys.argv[1])
-    print(calc_solution_cost(solution, default_unit_cost))
+    print(calc_solution_cost(solution, default_unit_cost)[-1])
 
 
 if __name__ == '__main__':

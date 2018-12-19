@@ -1,13 +1,12 @@
 import numpy as np
 from .MapLoader import WALL
 from .StateNode import StateNode
-from .CostCache import move
+from ..util.util import move, DIRECTIONS
 
-UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3
+UP, RIGHT, DOWN, LEFT, _ = DIRECTIONS
 
 
 class AgentStateNodeExpander:
-
     def __init__(self, _map, unit_cost):
         self.moves_cache = self.build_moves_cache(_map, unit_cost)
         self.unit_cost = unit_cost

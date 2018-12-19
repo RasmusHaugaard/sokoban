@@ -79,7 +79,8 @@ class OpenListInsertTree:
 
 
 class OpenListHeap:
-    h = []
+    def __init__(self):
+        self.h = []
 
     def add_children(self, children):
         for child in children:

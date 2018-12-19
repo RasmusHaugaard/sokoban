@@ -8,23 +8,14 @@ of moving a diamond from any position to any other
 """
 
 import numpy as np
-from .MapLoader import WALL
 import math
 from itertools import chain
 
-UP, RIGHT, DOWN, LEFT, ANY = 0, 1, 2, 3, 4
-opposite_dir = [DOWN, LEFT, UP, RIGHT, ANY]
+from ..MapLoader import WALL
+from ...util.util import move, DIRECTIONS, OPPOSITE_DIR
+
+UP, RIGHT, DOWN, LEFT, ANY = DIRECTIONS
 inf = float('inf')
-
-
-def move(y, x, d):
-    if d == UP:
-        return y - 1, x
-    elif d == RIGHT:
-        return y, x + 1
-    elif d == DOWN:
-        return y + 1, x
-    return y, x - 1
 
 
 def is_available(_map, y, x):
@@ -101,7 +92,7 @@ def init_diamond_weight_matrix(_map, unit_costs):
     cost.fill(inf)
 
     def attack_side_exists(y, x, direction):
-        return is_available(_map, *move(y, x, opposite_dir[direction]))
+        return is_available(_map, *move(y, x, OPPOSITE_DIR[direction]))
 
     # fill in unit costs
     for y in range(h):
@@ -191,9 +182,12 @@ def expand_with_any_dir(cost):
     return cost.reshape((h, w, 5, h, w, 5))
 
 
-def build_diamond_move_cost_cache(_map, unit_cost):
+def build_diamond_move_cost_cache(_map, unit_cost, fast=True):
     cost = init_diamond_weight_matrix(_map, unit_cost)
-    floyd_warshall_inplace_fast(cost)
+    if fast:
+        floyd_warshall_inplace_fast(cost)
+    else:
+        floyd_warshall_inplace(cost)
     # only return any to any dir
     cost = expand_with_any_dir(cost)[:, :, 4, :, :, 4]
     # last interaction with the diamond is not a forward_diamond, but a push
@@ -207,8 +201,21 @@ def build_agent_move_cost_cache(_map, unit_cost):
     return expand_with_any_dir(cost)
 
 
+def build_agent_g2d_move_cost_cache(_map, unit_cost):
+    orig_cost = build_agent_move_cost_cache(_map, unit_cost)
+
+    cost = np.copy(orig_cost[:, :, 4, :, :, 4])
+    min_cost = unit_cost.turn + unit_cost.forward
+    zeros = cost == 0
+    cost -= unit_cost.forward
+    cost[cost < min_cost] = min_cost
+    cost[zeros] = 0
+
+    return cost, orig_cost
+
+
 def test():
-    from UnitCost import default_unit_cost as uc
+    from ..UnitCost import default_unit_cost as uc
 
     _map = np.array([
         [b'X', b'X', b'X'],

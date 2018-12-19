@@ -4,9 +4,9 @@ cost of test-map3(b) and test-map4 from the initial states.
 """
 
 from ..src.MapLoader import load_map
-from ..Solver import solve
+from ..src.Solver import solve
 from ..src.AgentStateNodeExpander import AgentStateNodeExpander as NodeExpander
-from ..src.MinMatchingHeuristic import MinMatchingHeuristic as Heuristic
+from ..src.h.MinMatchingPlus import MinMatchingPlus as Heuristic
 from ..src.UnitCost import default_unit_cost
 
 c = {
