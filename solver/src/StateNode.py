@@ -4,7 +4,10 @@ class StateNode:
     def __init__(self, parent, agent, diamonds, current_cost, pushing=False):
         self.parent = parent
         self.agent = agent
-        self.diamonds = tuple(sorted(diamonds))
+        if isinstance(diamonds, list):
+            self.diamonds = tuple(sorted(diamonds))
+        else:
+            self.diamonds = diamonds
         self.current_cost = current_cost
         self.pushing = pushing
 

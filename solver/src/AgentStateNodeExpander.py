@@ -60,7 +60,37 @@ class AgentStateNodeExpander:
             if pos in d:
                 if push and push not in d:
                     i = d.index(pos)
-                    new_d = d[:i] + d[i + 1:] + (push,)
+                    new_d = list(d[:i] + d[i + 1:] + (push,))
+                    pushing = True
+                else:
+                    continue
+            if parent.pushing:
+                if parent.agent[2] != direction:
+                    move_cost += self.unit_cost.push
+                elif pushing:
+                    move_cost = self.unit_cost.forward_diamond
+            children.append(
+                StateNode(
+                    parent=parent,
+                    agent=pos + (direction,),
+                    diamonds=new_d,
+                    current_cost=parent.current_cost + rot_cost + move_cost,
+                    pushing=pushing,
+                )
+            )
+        return children
+
+    def call_with_diamond_map(self, parent, d_map):
+        children = []
+        d = parent.diamonds
+        for rot_cost, pos, direction, push in self.moves_cache[parent.agent]:
+            new_d = d
+            pushing = False
+            move_cost = self.unit_cost.forward
+            d_i = d_map[pos]
+            if d_i >= 0:
+                if push and d_map[push] == -1:
+                    new_d = list(d[:d_i] + d[d_i + 1:] + (push,))
                     pushing = True
                 else:
                     continue
